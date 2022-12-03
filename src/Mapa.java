@@ -1,4 +1,5 @@
 import java.util.*;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
@@ -6,12 +7,14 @@ import java.util.stream.Collectors;
 public class Mapa {
 
     ReentrantLock lock;
+    Condition cond; // por enquanto ainda n esta utilizado, mas talvez se use para alertar em casos de escrita no mapa para alterar geração de recompensas.
     private Localizacao[][] mapa;   /** em cada posição do array temos a localizacao nessa posição */
     private int num_trotinetes;     /** número de trotinetes */
     int N;                          /** tamanho do mapa */
 
     public Mapa(int n) {
         this.lock = new ReentrantLock();
+        this.cond = lock.newCondition();
         this.N = n; ///// vai ser 20 no final
         this.mapa = new Localizacao[N][N];
         for (int i = 0; i < N; i++) {
@@ -106,6 +109,19 @@ public class Mapa {
         }
     }
 
+    /** Bloqueia devidamente todos os locais individuais de maneira a libertar as localizacoes mais rapidamente. (PERIGOSA)
+     */
+    private void lockAllLocais(){
+        this.lock.lock();
+        try{
+            for (int i = 0; i < N; i++)
+                for (int j = 0; j < N; j++)
+                    mapa[i][j].lockLocal();
+        } finally {
+            this.lock.unlock();
+        }
+    }
+
     /** Para notificacar aquando um local passe a estar vazio. NOT SURE DA UTILIDADE.
      */
     public void getLocalVazio(int x, int y) throws InterruptedException {
@@ -141,10 +157,12 @@ public class Mapa {
 
 
     /** Indica as posições que estão a volta da Localizacao num determinado raio.
+     * Não faço locks aqui porque esta funcao é uma funcao auxiliar em que locks sao feitos previamente noutras funcoes /// talvez seja preciso alterar.
      */
-    public List<Localizacao> getSurroundings(Localizacao l, int raio){
+    // fazer alterações para apenas receber pares de coordenadas e dar pares de coordenadas, para simplificar logica de obtencao, uma vez que esta funcão é puramente matematica, não havendo necessidade de haver locks ao obter coordenadas, to do later
+    private List<Localizacao> getSurroundings(Localizacao l, int raio){
         List<Localizacao> surroundings = new ArrayList<Localizacao>();
-        if (!this.validPos(l.getX(), l.getY())) return surroundings;
+        if (!this.validPos(l.getX(), l.getY())) return surroundings; // esta condição é tecnicamente impossivel uma vez que passo a localização como argumento.
         surroundings.add(l);
         List<Localizacao> nova = new ArrayList<Localizacao>();
         nova.add(l);
@@ -185,9 +203,69 @@ public class Mapa {
         }
     }
 
-
     /** Retorna uma List<Localizacao> onde indica a posição de trotinetes.
      */
+    public List<Localizacao> whereAreTrotinetes(){
+        List<Localizacao> trotinetes = new ArrayList<Localizacao>();
+        this.lockAllLocais(); // é feito um lock do mapa de inicio para lockar todas as localizacoes individuais e é de seguida desbloqueado o lock do mapa.
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                if (getTrotinetasIn(i, j) > 0) {
+                    trotinetes.add(getLocalizacao(i, j));
+                }
+                mapa[i][j].unlockLocal();// desbloqueio individual das localizacoes previamente bloquadas em lockAllLocais.
+            }
+        }
+        return trotinetes;
+    }
+
+    /** Retorna uma List<Localizacao> onde indica a inexistência de trotinetes num raio de 2.
+     */
+    public List<Localizacao> getClearAreas(){
+        List<Localizacao> clear = new ArrayList<Localizacao>();
+        HashSet<Localizacao> withTrotArround = new HashSet<Localizacao>();
+        this.lock.lock();
+        try{
+            List<Localizacao> trotinetes = this.whereAreTrotinetes();
+            for (Localizacao l : trotinetes){
+                withTrotArround.addAll(getSurroundings(l, 2));
+            }
+            for (int i=0; i<N; i++)
+                for (int j=0; j<N; j++)
+                    if (!withTrotArround.contains(mapa[i][j]))
+                        clear.add(mapa[i][j]);
+            return clear;
+        } finally {
+            this.lock.unlock();
+        }
+    }
+
+    //public
+
+
+
+    @Override
+    public String toString() {
+        StringBuilder res = new StringBuilder();
+        for (int i=0; i<this.N; i++){
+            for (int j = 0; j < this.N; j++) {
+                res.append(mapa[i][j].getNtrotinetes());
+            }
+            res.append("\n");
+        }
+        return res.toString();
+    }
+
+}
+
+
+
+
+
+
+/*
+    /** Retorna uma List<Localizacao> onde indica a posição de trotinetes.
+     // Faz lock total e n liberta antecipadamente as localizacoes.
     public List<Localizacao> whereAreTrotinetes(){
         List<Localizacao> trotinetes = new ArrayList<Localizacao>();
         this.lock.lock();
@@ -204,38 +282,4 @@ public class Mapa {
             this.lock.unlock();
         }
     }
-
-    /** Retorna uma List<Localizacao> onde indica a inexistência de trotinetes num raio de 2.
-     */
-    public List<Localizacao> getClearAreas(){
-        List<Localizacao> clear = new ArrayList<Localizacao>();
-        this.lock.lock();
-        try{
-            List<Localizacao> trotinetes = this.whereAreTrotinetes();
-            HashSet<Localizacao> withTrArround = new HashSet<Localizacao>();
-            for (Localizacao l : trotinetes){
-                withTrArround.addAll(getSurroundings(l, 2));
-            }
-            for (int i=0; i<N; i++)
-                for (int j=0; j<N; j++)
-                    if (!withTrArround.contains(mapa[i][j]))
-                        clear.add(mapa[i][j]);
-            return clear;
-        } finally {
-            this.lock.unlock();
-        }
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder res = new StringBuilder();
-        for (int i=0; i<this.N; i++){
-            for (int j = 0; j < this.N; j++) {
-                res.append(mapa[i][j].getNtrotinetes());
-            }
-            res.append("\n");
-        }
-        return res.toString();
-    }
-
-}
+*/
