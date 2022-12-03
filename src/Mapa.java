@@ -331,6 +331,14 @@ public class Mapa {
         }
     }
 
+    /** Função que calcula as recompensas em vigor, mas que têm origem num raio de 2 unidades de (x,y).
+     * TO BE COMPLETED.
+     */
+    public Set<Recompensa> getRewardsWithOrigin(int x, int y){
+        Set<Recompensa> rewards = new HashSet<Recompensa>();
+
+        return rewards;
+    }
 
 
     @Override
