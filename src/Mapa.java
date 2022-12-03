@@ -59,12 +59,6 @@ public class Mapa {
         return x < this.N && y < this.N && x >= 0 && y >= 0;
     }
 
-    /** Calcula a distância de Manhatan.
-     */
-    public int distance(int x0, int y0, int x1, int y1){
-        int distance = Math.abs(x1-x0) + Math.abs(y1-y0);
-        return distance;
-    }
 
     // talvez deixe de ser usado.
     public Localizacao pairToLocalizacao(Pair p){
@@ -76,10 +70,7 @@ public class Mapa {
     public List<Localizacao> returnLocals(List<Pair> pairs){
         List<Localizacao> ret = new ArrayList<Localizacao>();
         for (Pair p: pairs){
-            int x = p.getX();
-            int y = p.getY();
-            //this.mapa[x][y].lockLocal();
-            ret.add(this.getLocalizacao(x, y));
+            ret.add(pairToLocalizacao(p));
         }
         return ret;
     }
@@ -196,11 +187,12 @@ public class Mapa {
         surroundings.add(l);
         List<Pair> nova = new ArrayList<Pair>();
         nova.add(l);
-        //int x, y;
+        int new_d;
         while (!(nova.isEmpty())) {
             Pair locl = nova.get(0);
             nova.remove(0);
-            int new_d = distance(l.getX(), l.getY(), locl.getX(), locl.getY());
+            //new_d = distance(l.getX(), l.getY(), locl.getX(), locl.getY());
+            new_d = l.distance(locl);
             if (new_d >= raio){
                 break;
             }
@@ -285,7 +277,13 @@ public class Mapa {
         }
     }
 
-    //public
+    public List<Recompensa> getRewards(){
+        List<Recompensa> rewards = new ArrayList<Recompensa>();
+
+        List<Localizacao> locais = new ArrayList<Localizacao>();
+
+        return rewards;
+    }
 
 
 
