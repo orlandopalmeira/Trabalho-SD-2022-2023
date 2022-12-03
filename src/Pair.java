@@ -1,20 +1,24 @@
 /**
  * Esta é uma classe auxiliar que implementa pares.
  */
-public class Pair<V1,V2> {
-    private V1 fst;
-    private V2 snd;
+public class Pair {
+    private int x;
+    private int y;
 
-    public V1 fst(){return fst;}
+    public Pair(int x, int y){
+        this.x = x;
+        this.y = y;
+    }
 
-    public V2 snd(){return snd;}
+    public int x(){return x;}
+
+    public int y(){return y;}
+
     
     public String toString(){
-        StringBuilder sb = new StringBuilder();
-        sb.append("(");
-        sb.append(fst.toString()); sb.append(",");
-        sb.append(snd.toString());
-        sb.append(")");
-        return sb.toString();
+        return "(" +
+                this.x + "," +
+                this.y +
+                ")";
     }
 }

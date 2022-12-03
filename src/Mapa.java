@@ -67,6 +67,10 @@ public class Mapa {
         return distance;
     }
 
+    public Localizacao pairToLocalizacao(Pair p){
+        return this.getLocalizacao(p.x(), p.y());
+    }
+
     /** Retorna a matriz do mapa - inutilizado
      */
     public Localizacao[][] getMapa() {
@@ -167,7 +171,7 @@ public class Mapa {
         List<Localizacao> nova = new ArrayList<Localizacao>();
         nova.add(l);
         int x, y;
-        for( ; !(nova.isEmpty()); ){
+        while (!(nova.isEmpty())) {
             Localizacao locl = nova.get(0);
             nova.remove(0);
             int new_d = distance(l.getX(), l.getY(), locl.getX(), locl.getY());
@@ -175,12 +179,12 @@ public class Mapa {
                 break;
             }
             int [][] poses = {{locl.getX()+1, locl.getY()}, {locl.getX()-1, locl.getY()}, {locl.getX(), locl.getY()+1}, {locl.getX(), locl.getY()-1}};
-            for(int j = 0; j < poses.length; j++){
-                x = poses[j][0];
-                y = poses[j][1];
-                if (this.validPos(x,y) && !surroundings.contains(this.getLocalizacao(x,y))){
-                    nova.add(this.getLocalizacao(x,y));
-                    surroundings.add(this.getLocalizacao(x,y));
+            for (int[] pose : poses) {
+                x = pose[0];
+                y = pose[1];
+                if (this.validPos(x, y) && !surroundings.contains(this.getLocalizacao(x, y))) {
+                    nova.add(this.getLocalizacao(x, y));
+                    surroundings.add(this.getLocalizacao(x, y));
                 }
             }
         }
@@ -194,8 +198,8 @@ public class Mapa {
         List<Localizacao> trotinetes_livres = new ArrayList<Localizacao>();
         this.lock.lock();
         try{
-            List<Localizacao> pos_arround = this.getSurroundings(this.getLocalizacao(x,y), raio);
-            trotinetes_livres = pos_arround.stream().filter(p -> p.getNtrotinetes()>0).collect(Collectors.toList());;
+            List<Localizacao> arround = this.getSurroundings(this.getLocalizacao(x,y), raio);
+            trotinetes_livres = arround.stream().filter(p -> p.getNtrotinetes()>0).collect(Collectors.toList());;
             return trotinetes_livres;
 
         }finally {
