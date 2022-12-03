@@ -25,6 +25,20 @@ public class Mapa {
         this.randomTrotinetes(num_trotinetes);
     }
 
+    public Mapa(int n, int trotinetes) {
+        this.lock = new ReentrantLock();
+        this.cond = lock.newCondition();
+        this.N = n; ///// vai ser 20 no final
+        this.mapa = new Localizacao[N][N];
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                mapa[i][j] = new Localizacao(i,j);
+            }
+        }
+        this.num_trotinetes = trotinetes;
+        this.randomTrotinetes(num_trotinetes);
+    }
+
     public Mapa() {
         this.lock = new ReentrantLock();
         this.N = 20; ///// vai ser 20 no final
@@ -277,10 +291,12 @@ public class Mapa {
         }
     }
 
+
     public List<Recompensa> getRewards(){
         List<Recompensa> rewards = new ArrayList<Recompensa>();
 
-        List<Localizacao> locais = new ArrayList<Localizacao>();
+        // Locais destino de recompensas.
+        List<Localizacao> clearAreas = this.getClearAreas();
 
         return rewards;
     }
