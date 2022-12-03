@@ -1,12 +1,16 @@
 import java.util.List;
+import java.util.Set;
 
 public class Main {
     public static void main(String[] args) {
         Mapa mapa = new Mapa(10);
         List<Localizacao> locals;
         System.out.println(mapa);
-        List<Pair> coordenadas = mapa.getClearAreas();
-        System.out.println(coordenadas);
+        //List<Pair> coordenadas = mapa.whereAreTrotinetes();
+        //System.out.println(coordenadas);
+
+        Set<Recompensa> recompensas = mapa.getRewards();
+        Recompensa.printRecompensas(recompensas);
 
         System.out.println("Done!");
     }

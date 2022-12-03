@@ -22,7 +22,16 @@ public class Mapa {
             }
         }
         this.num_trotinetes = 8;
-        this.randomTrotinetes(num_trotinetes);
+        // ESTOU A DEFINIR UMA ESTRUTURA MAIS EXATA, INVES DE INICIAR ALEATORIAMENTE AS TROTINETAS POR MOTIVOS DE DEBUG /////////////////
+        this.addTrotineta(1,1);
+        this.addTrotineta(2,4);
+        this.addTrotineta(4,1);
+        this.addTrotineta(5,9);
+        this.addTrotineta(6,1);
+        this.addTrotineta(8,4);
+        this.addTrotineta(8,9);
+        this.addTrotineta(9,4);
+        //this.randomTrotinetes(num_trotinetes);
     }
 
     public Mapa(int n, int trotinetes) {
@@ -253,13 +262,13 @@ public class Mapa {
 
     /** Retorna uma List<Localizacao> onde indica a posição de trotinetes.
      */
-    public List<Localizacao> whereAreTrotinetes(){
-        List<Localizacao> trotinetes = new ArrayList<Localizacao>();
+    public List<Pair> whereAreTrotinetes(){
+        List<Pair> trotinetes = new ArrayList<Pair>();
         this.lockAllLocais(); // é feito um lock do mapa de inicio para lockar todas as localizacoes individuais e é de seguida desbloqueado o lock do mapa.
         for (int i = 0; i < N; i++) {
             for (int j = 0; j < N; j++) {
                 if (getTrotinetasIn(i, j) > 0) {
-                    trotinetes.add(getLocalizacao(i, j));
+                    trotinetes.add(new Pair(i,j));
                 }
                 mapa[i][j].unlockLocal();// desbloqueio individual das localizacoes previamente bloquadas em lockAllLocais.
             }
@@ -275,8 +284,8 @@ public class Mapa {
         HashSet<Localizacao> withTrotArround = new HashSet<Localizacao>();
         this.lock.lock();
         try{
-            List<Localizacao> trotinetes = this.whereAreTrotinetes();
-            for (Localizacao l : trotinetes){
+            List<Pair> trotinetes = this.whereAreTrotinetes();
+            for (Pair l : trotinetes){
                 withTrotArround.addAll(returnLocals(getSurroundings(l.getX(), l.getY(), 2)));
             }
             for (int i=0; i<N; i++)
@@ -292,29 +301,28 @@ public class Mapa {
     }
 
 
-    public List<Recompensa> getRewards(){
-        List<Recompensa> rewards = new ArrayList<Recompensa>();
+    public Set<Recompensa> getRewards(){
+        Set<Recompensa> rewards = new HashSet<Recompensa>();
         this.lock.lock();
         try{
             // Locais destino de recompensas.
             List<Pair> clearAreas = this.getClearAreas();
 
             // Obtencao de locais de origem para recompensas.
-            //List<Pair> origin = new ArrayList<Pair>(); // lista de coordenadas que tem como origem uma recompensa.
-            List<Localizacao> trotinetas = this.whereAreTrotinetes();
-            for (Localizacao t: trotinetas){
-                List<Pair> pares = this.getSurroundings(t.getX(), t.getY(), 2);
-                for (Pair p: pares){
+            List<Pair> trotinetas = this.whereAreTrotinetes();
+            for (Pair central: trotinetas){ // central = central trotinet em que está a ser feita a verificaçao inicial.
+                List<Pair> surronding = this.getSurroundings(central.getX(), central.getY(), 2);
+                for (Pair sur: surronding){ // sur = surrounding trotinet que está a ser verificada relativamente à trotinete central.
                     // talvez adicionar nº de trotinetes na area como fator no valor da recompensa. Para isso seria preciso alterar a classe recompensa para admitir um valor de nº de trotinetes na area de origem para usar como fator no valor da recompensa.
-                    if (this.getTrotinetasIn(p.getX(), p.getY()) > 0){
+                    if (!sur.equals(central) && this.getTrotinetasIn(sur.getX(), sur.getY()) > 0){
                         for (Pair ca: clearAreas){
-                            rewards.add(new Recompensa(p, ca));
+                            rewards.add(new Recompensa(central, ca));
+                            //rewards.add(new Recompensa(sur, ca));
                         }
-
+                        //trotinetas.remove(sur); // uma vez que já se faz a adiçao das recompensas quando se encontra uma trotineta surronding.
                     }
                 }
             }
-
             return rewards;
         } finally {
             this.lock.unlock();

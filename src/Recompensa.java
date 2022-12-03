@@ -1,4 +1,6 @@
-
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class Recompensa {
     private Pair origem;
@@ -15,6 +17,13 @@ public class Recompensa {
      */
     public int calculaRecompensa(){
         return origem.distance(destino); // por enquanto a recompensa é igual à distancia.
+    }
+
+    public static void printRecompensas(Collection<Recompensa> recs){
+        List<Recompensa> sorted_ = recs.stream().sorted((r1, r2) -> {return r2.reward - r1.reward;}).collect(Collectors.toList());
+        for(Recompensa r : sorted_){
+            System.out.println(r);
+        }
     }
 
     @Override
