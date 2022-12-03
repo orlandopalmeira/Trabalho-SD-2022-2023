@@ -5,8 +5,8 @@ public class Main {
         Mapa mapa = new Mapa(10);
         List<Localizacao> locals;
         System.out.println(mapa);
-        locals = mapa.getClearAreas();
-        System.out.println(locals);
+        List<Pair> coordenadas = mapa.getClearAreas();
+        System.out.println(coordenadas);
 
         System.out.println("Done!");
     }

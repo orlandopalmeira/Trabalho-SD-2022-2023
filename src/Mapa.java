@@ -270,8 +270,8 @@ public class Mapa {
     /** Retorna uma List<Localizacao> onde indica a inexistência de trotinetes num raio de 2.
      * /// Pode ser melhorada a sua contenção de locks e talvez passe a retornar e trabalhar com Pair's invés de Localizacao's.
      */
-    public List<Localizacao> getClearAreas(){
-        List<Localizacao> clearLocals = new ArrayList<Localizacao>();
+    public List<Pair> getClearAreas(){
+        List<Pair> clearLocals = new ArrayList<Pair>();
         HashSet<Localizacao> withTrotArround = new HashSet<Localizacao>();
         this.lock.lock();
         try{
@@ -283,7 +283,7 @@ public class Mapa {
                 for (int j=0; j<N; j++) {
                     Localizacao l = getLocalizacao(i, j);
                     if (!withTrotArround.contains(l))
-                        clearLocals.add(l);
+                        clearLocals.add(new Pair(l.getX(), l.getY()));
                 }
             return clearLocals;
         } finally {
@@ -294,11 +294,31 @@ public class Mapa {
 
     public List<Recompensa> getRewards(){
         List<Recompensa> rewards = new ArrayList<Recompensa>();
+        this.lock.lock();
+        try{
+            // Locais destino de recompensas.
+            List<Pair> clearAreas = this.getClearAreas();
 
-        // Locais destino de recompensas.
-        List<Localizacao> clearAreas = this.getClearAreas();
+            // Obtencao de locais de origem para recompensas.
+            //List<Pair> origin = new ArrayList<Pair>(); // lista de coordenadas que tem como origem uma recompensa.
+            List<Localizacao> trotinetas = this.whereAreTrotinetes();
+            for (Localizacao t: trotinetas){
+                List<Pair> pares = this.getSurroundings(t.getX(), t.getY(), 2);
+                for (Pair p: pares){
+                    // talvez adicionar nº de trotinetes na area como fator no valor da recompensa. Para isso seria preciso alterar a classe recompensa para admitir um valor de nº de trotinetes na area de origem para usar como fator no valor da recompensa.
+                    if (this.getTrotinetasIn(p.getX(), p.getY()) > 0){
+                        for (Pair ca: clearAreas){
+                            rewards.add(new Recompensa(p, ca));
+                        }
 
-        return rewards;
+                    }
+                }
+            }
+
+            return rewards;
+        } finally {
+            this.lock.unlock();
+        }
     }
 
 
@@ -306,7 +326,14 @@ public class Mapa {
     @Override
     public String toString() {
         StringBuilder res = new StringBuilder();
+        // tem acrescentado indices
+        res.append(" :");
+        for (int i = 0; i < N; i++) {
+            res.append(i);
+        }
+        res.append("\n");
         for (int i=0; i<this.N; i++){
+            res.append(i+":");
             for (int j = 0; j < this.N; j++) {
                 res.append(mapa[i][j].getNtrotinetes());
             }
