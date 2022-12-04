@@ -96,7 +96,11 @@ public class Mapa {
     }
 
 
-    // talvez deixe de ser usado.
+    /**
+     * Transforma um Pair na respetiva Localizacao.
+     * @param p Objeto da classe Pair.
+     * @return Objeto correspondente da classe Localizacao.
+     */
     public Localizacao pairToLocalizacao(Pair p){
         return this.getLocalizacao(p.getX(), p.getY());
     }
