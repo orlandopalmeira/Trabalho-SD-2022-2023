@@ -142,6 +142,7 @@ public class Mapa {
     }
 
     /** Retorna o objeto Localizacao naquela coordenada.
+     * Retorna Null caso as coordenadas não sejam válidas.
      */
     public Localizacao getLocalizacao(int x, int y) {
         if(!this.validPos(x,y)) return null;
