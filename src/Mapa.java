@@ -11,6 +11,11 @@ public class Mapa {
     private int num_trotinetes;     /** número de trotinetes */
     int N;                          /** tamanho do mapa */
 
+    /**
+     * Construtor da classe Mapa.
+     * DETALHE: Atualmente, o posicionamento inicial de trotinetes não está a ser feito aleatoriamente, para DEBUG.
+     * @param n Tamanho do mapa.
+     */
     public Mapa(int n) {
         this.lock = new ReentrantLock();
         this.cond = lock.newCondition();
@@ -34,6 +39,11 @@ public class Mapa {
         //this.randomTrotinetes(num_trotinetes);
     }
 
+    /**
+     * Construtor da classe Mapa.
+     * @param n Tamanho do mapa.
+     * @param trotinetes Número de trotinetes a introduzir no mapa.
+     */
     public Mapa(int n, int trotinetes) {
         this.lock = new ReentrantLock();
         this.cond = lock.newCondition();
@@ -48,6 +58,9 @@ public class Mapa {
         this.randomTrotinetes(num_trotinetes);
     }
 
+    /**
+     * Construtor da classe Mapa, com tamanho de 20 unidades e 10 trotinetes inicialmente colocados.
+     */
     public Mapa() {
         this.lock = new ReentrantLock();
         this.N = 20; ///// vai ser 20 no final

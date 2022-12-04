@@ -11,8 +11,8 @@ public class Main {
         Set<Recompensa> recompensas = mapa.getRewards();
         Recompensa.printRecompensas(recompensas);
 
-        int x = 9, y = 5;
-        System.out.printf("Recompensas com origem em (%d,%d):\n", x, y);
+        int x = 5, y = 2;
+        System.out.printf("\nRecompensas com origem em (%d,%d):\n", x, y);
         Set<Recompensa> recompensasOrigin = mapa.getRewardsWithOrigin(x,y);
         Recompensa.printRecompensas(recompensasOrigin);
 
