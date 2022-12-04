@@ -6,11 +6,15 @@ public class Main {
         Mapa mapa = new Mapa(10);
         List<Localizacao> locals;
         System.out.println(mapa);
-        //List<Pair> coordenadas = mapa.whereAreTrotinetes();
-        //System.out.println(coordenadas);
 
+        System.out.println("Todas as recompensas:");
         Set<Recompensa> recompensas = mapa.getRewards();
         Recompensa.printRecompensas(recompensas);
+
+        int x = 9, y = 5;
+        System.out.printf("Recompensas com origem em (%d,%d):\n", x, y);
+        Set<Recompensa> recompensasOrigin = mapa.getRewardsWithOrigin(x,y);
+        Recompensa.printRecompensas(recompensasOrigin);
 
         System.out.println("Done!");
     }

@@ -154,12 +154,28 @@ public class Mapa {
     }
 
     /** Bloqueia devidamente todos os locais individuais de maneira a libertar as localizacoes mais rapidamente. (PERIGOSA)
-     */
+     *//*
     private void lockTheseLocais(List<Localizacao> locals){
         this.lock.lock();
         try{
             for (Localizacao l : locals)
                 l.lockLocal();
+        } finally {
+            this.lock.unlock();
+        }
+    }
+    */
+
+
+    /** Bloqueia devidamente todos os locais individuais de maneira a libertar as localizacoes mais rapidamente. (PERIGOSA)
+     */
+    private void lockTheseLocais(List<Pair> locals){
+        this.lock.lock();
+        try{
+            for (Pair p : locals){
+                Localizacao l = this.getLocalizacao(p.getX(), p.getY());
+                l.lockLocal();
+            }
         } finally {
             this.lock.unlock();
         }
@@ -201,8 +217,17 @@ public class Mapa {
 
     /** Indica as posições que estão a volta da Localizacao num determinado raio.
      * Não faço locks aqui porque esta funcao é uma funcao auxiliar em que locks sao feitos previamente noutras funcoes /// talvez seja preciso alterar.
+     * Alternativa a getSurrondings que recebe dois inteiros que são as coordenadas.
+     * DETALHE: A coordenada central que vem no argumento, é também retornada, sendo ela própria considerada como surronding coordinate dela mesmo.
      */
-    // fazer alterações para apenas receber pares de coordenadas e dar pares de coordenadas, para simplificar logica de obtencao, uma vez que esta funcão é puramente matematica, não havendo necessidade de haver locks ao obter coordenadas, to do later
+    private List<Pair> getSurroundings(Pair p, int raio){
+        return this.getSurroundings(p.getX(), p.getY(), raio);
+    }
+
+    /** Indica as posições que estão a volta da Localizacao num determinado raio.
+     * Não faço locks aqui porque esta funcao é uma funcao auxiliar em que locks sao feitos previamente noutras funcoes /// talvez seja preciso alterar.
+     * DETALHE: A coordenada central que vem no argumento, é também retornada, sendo ela própria considerada como surronding coordinate dela mesmo.
+     */
     private List<Pair> getSurroundings(int x, int y, int raio){
         List<Pair> surroundings = new ArrayList<Pair>();
         if (!this.validPos(x, y)) return surroundings;
@@ -214,12 +239,10 @@ public class Mapa {
         while (!(nova.isEmpty())) {
             Pair locl = nova.get(0);
             nova.remove(0);
-            //new_d = distance(l.getX(), l.getY(), locl.getX(), locl.getY());
             new_d = l.distance(locl);
             if (new_d >= raio){
                 break;
             }
-            //int [][] poses = {{locl.getX()+1, locl.getY()}, {locl.getX()-1, locl.getY()}, {locl.getX(), locl.getY()+1}, {locl.getX(), locl.getY()-1}};
             Pair [] poses = {new Pair(locl.getX()+1, locl.getY()), new Pair(locl.getX()-1, locl.getY()), new Pair(locl.getX(), locl.getY()+1), new Pair(locl.getX(), locl.getY()-1)};
             for (Pair pose : poses) {
                 x = pose.getX();
@@ -232,31 +255,27 @@ public class Mapa {
             }
         }
         return surroundings;
-        //return surroundings.stream().map(this::pairToLocalizacao).collect(Collectors.toList());
     }
 
     /** Indica as posições em que estão trotinetes num raio de 2 relativamente a uma determinada posição. REQUISITO 1
      */
-    public List<Localizacao> trotinetesArround(int x, int y){
+    public List<Pair> trotinetesArround(int x, int y){
         int raio = 2;
-        List<Localizacao> trotinetes_livres = new ArrayList<Localizacao>();
-        List<Pair> arroundP = this.getSurroundings(x, y, raio);
-        //List<Localizacao> arround = arroundP.stream().map(this::pairToLocalizacao).toList();
-        List<Localizacao> arround;
+        List<Pair> trotinetes_livres = new ArrayList<Pair>();
+        List<Pair> arround = this.getSurroundings(x, y, raio);
         this.lock.lock();
         try {
-            arround = this.returnLocals(arroundP);
-            this.lockTheseLocais(arround);
+            this.lockTheseLocais(arround); // Faço lock apenas aos sitios à volta da coordenada fornecida, pois só irei ler esses valores do mapa.
         } finally {
             this.lock.unlock();
         }
-        for (Localizacao l: arround){
+        for (Pair p: arround){
+            Localizacao l = this.getLocalizacao(p.getX(), p.getY());
             if (l.getNtrotinetes() > 0){
-                trotinetes_livres.add(l);
+                trotinetes_livres.add(p);
             }
-            l.unlockLocal(); // faço unlock uma vez que a funcao lockTheseLocais lockou estas Localizacao.
+            l.unlockLocal(); // Faço unlock pois a funcao lockTheseLocais lockou estas Localizacao's.
         }
-        //trotinetes_livres = arround.stream().filter(p -> p.getNtrotinetes()>0).collect(Collectors.toList());
         return trotinetes_livres;
     }
 
@@ -336,6 +355,31 @@ public class Mapa {
      */
     public Set<Recompensa> getRewardsWithOrigin(int x, int y){
         Set<Recompensa> rewards = new HashSet<Recompensa>();
+        //int raio = 2;
+        this.lock.lock();
+        try{
+            // Locais destino de recompensas.
+            List<Pair> clearAreas = this.getClearAreas();
+
+            // Obtencao de locais de origem para recompensas.
+            List<Pair> trotinetas = this.trotinetesArround(x,y);
+            for (Pair central: trotinetas){ // central = central trotinet em que está a ser feita a verificaçao inicial.
+                List<Pair> surronding = this.getSurroundings(central.getX(), central.getY(), 2);
+                for (Pair sur: surronding){ // sur = surrounding trotinet que está a ser verificada relativamente à trotinete central.
+                    // talvez adicionar nº de trotinetes na area como fator no valor da recompensa. Para isso seria preciso alterar a classe recompensa para admitir um valor de nº de trotinetes na area de origem para usar como fator no valor da recompensa.
+                    if (!sur.equals(central) && this.getTrotinetasIn(sur.getX(), sur.getY()) > 0){
+                        for (Pair ca: clearAreas){
+                            rewards.add(new Recompensa(central, ca));
+                            //rewards.add(new Recompensa(sur, ca));
+                        }
+                        //trotinetas.remove(sur); // uma vez que já se faz a adiçao das recompensas quando se encontra uma trotineta surronding.
+                    }
+                }
+            }
+        } finally {
+            this.lock.unlock();
+        }
+
 
         return rewards;
     }

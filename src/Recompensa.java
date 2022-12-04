@@ -38,9 +38,9 @@ public class Recompensa {
 
         Recompensa r = (Recompensa) o;
         return origem.getX() == r.origem.getX() &&
-               origem.getX() == r.origem.getX() &&
+               origem.getY() == r.origem.getY() &&
                destino.getX() == r.destino.getX() &&
-               destino.getX() == r.destino.getX() &&
+               destino.getY() == r.destino.getY() &&
                reward == r.reward;
     }
 
