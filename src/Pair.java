@@ -45,17 +45,17 @@ public class Pair {
         return that.x == this.x && that.y == this.y;
     }
 
+    @Override
+    public int hashCode() {
+        Integer xo = this.x,
+                yo = this.y;
+        return xo.hashCode() + yo.hashCode();
+    }
+
     public String toString(){
         return "(" +
                 this.x + "," +
                 this.y +
                 ")";
-    }
-
-    public static void main(String[] args) {
-        Pair p0 = new Pair(2,2);
-        Pair p1 = new Pair(5,4);
-        int res = p0.distance(p1);
-        System.out.println(res);
     }
 }
