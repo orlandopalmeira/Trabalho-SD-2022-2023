@@ -13,11 +13,13 @@ public class Recompensa {
         this.reward = this.calculaRecompensa();
     }
 
+
     /** Função matemática que calcula o valor da recompensa tendo em conta a distância entre a origem e o destino.
      */
     public int calculaRecompensa(){
         return origem.distance(destino); // por enquanto a recompensa é igual à distancia.
     }
+
 
     public static void printRecompensas(Collection<Recompensa> recs){
         List<Recompensa> sorted_ = recs.stream().sorted((r1, r2) -> {return r2.reward - r1.reward;}).collect(Collectors.toList());
@@ -35,7 +37,6 @@ public class Recompensa {
         if (o.getClass() != Recompensa.class) {
             return false;
         }
-
         Recompensa r = (Recompensa) o;
         return origem.getX() == r.origem.getX() &&
                origem.getY() == r.origem.getY() &&
@@ -61,7 +62,7 @@ public class Recompensa {
         return "Recompensa{" +
                 "origem=" + origem +
                 ", destino=" + destino +
-                ", recompensas=" + reward +
+                ", recompensa=" + reward +
                 '}';
     }
 }

@@ -1,11 +1,13 @@
 import java.util.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 
 public class Mapa {
 
     ReentrantLock lock;
+    //ReentrantReadWriteLock lock;
     Condition cond; // por enquanto ainda n esta utilizado, mas talvez se use para alertar em casos de escrita no mapa para alterar geração de recompensas.
     private Localizacao[][] mapa;   /** em cada posição do array temos a localizacao nessa posição */
     private int num_trotinetes;     /** número de trotinetes */
