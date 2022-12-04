@@ -1,7 +1,7 @@
 /**
  * Esta é uma classe auxiliar que implementa pares.
  */
-public class Pair {
+public class Pair implements Comparable<Pair>{
     public int x;
     public int y;
 
@@ -35,6 +35,13 @@ public class Pair {
         int y1 = p1.getY();
         int distance = Math.abs(x1-x0) + Math.abs(y1-y0);
         return distance;
+    }
+
+    public int compareTo(Pair p){
+        if (this.x == p.x){
+            return Integer.compare(this.y, p.y);
+        }
+        return Integer.compare(this.x, p.x);
     }
 
     @Override

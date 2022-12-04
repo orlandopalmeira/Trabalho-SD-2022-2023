@@ -171,6 +171,7 @@ public class Mapa {
     /** Bloqueia devidamente todos os locais individuais de maneira a libertar as localizacoes mais rapidamente. (PERIGOSA)
      */
     private void lockTheseLocais(List<Pair> locals){
+        Collections.sort(locals);
         this.lock.readLock().lock();
         try{
             for (Pair p : locals){
