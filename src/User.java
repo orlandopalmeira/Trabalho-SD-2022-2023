@@ -7,7 +7,6 @@ public class User {
     private String password;
     private int x;
     private int y;
-    private Map<LocalTime,Localizacao> historico;
     ReentrantLock l = new ReentrantLock();
 
     public User(String username, String password, int x, int y, int flagEspecial) {
@@ -15,7 +14,6 @@ public class User {
         this.password = password;
         this.x = x;
         this.y = y;
-        this.historico = new TreeMap<>();
     }
 
     public String getUsername() {
@@ -98,41 +96,6 @@ public class User {
         y = locs[1];
     }
 
-    public Map<LocalTime, Localizacao> getHistorico() {
-        try{
-            l.lock();
-            return historico;
-        }
-        finally {
-            l.unlock();
-        }
-    }
-
-    public void setHistorico(Map<LocalTime, Localizacao> historico) {
-        try {
-            l.lock();
-            this.historico = historico;
-        }
-        finally {
-            l.unlock();
-        }
-    }
-
-    public void addHistorico(Localizacao local, LocalTime instante){
-        try {
-            l.lock();
-            this.historico.put(instante, local.clone());
-        }
-        finally {
-            l.unlock();
-        }
-    }
-
-
-    /**
-     * método que atualiza a localizacao e mete a anterior no historico
-     * @return
-     */
 
     public String toString () {
         StringBuilder builder = new StringBuilder();
@@ -140,7 +103,6 @@ public class User {
         builder.append(this.password).append(";");
         builder.append(this.x).append(";");
         builder.append(this.y).append(";");
-        builder.append(this.historico).append(";");
         return builder.toString();
     }
 }
