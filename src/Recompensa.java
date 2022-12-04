@@ -26,6 +26,36 @@ public class Recompensa {
         }
     }
 
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this){
+            return true;
+        }
+        if (o.getClass() != Recompensa.class) {
+            return false;
+        }
+
+        Recompensa r = (Recompensa) o;
+        return origem.getX() == r.origem.getX() &&
+               origem.getX() == r.origem.getX() &&
+               destino.getX() == r.destino.getX() &&
+               destino.getX() == r.destino.getX() &&
+               reward == r.reward;
+    }
+
+
+    @Override
+    public int hashCode() {
+        Integer xo = origem.getX(),
+                yo = origem.getY(),
+                xd = destino.getX(),
+                yd = destino.getY(),
+                rewrd = this.reward;
+        return xo.hashCode() + yo.hashCode() + xd.hashCode() + yd.hashCode() + rewrd.hashCode();
+    }
+
+
     @Override
     public String toString() {
         return "Recompensa{" +
