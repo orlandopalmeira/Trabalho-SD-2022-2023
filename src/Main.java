@@ -1,6 +1,7 @@
 import java.util.List;
 import java.util.Set;
 
+// SO PARA TESTES.
 public class Main {
     public static void main(String[] args) {
         Mapa mapa = new Mapa(10);

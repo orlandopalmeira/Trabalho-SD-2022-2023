@@ -1,6 +1,7 @@
 import java.util.Scanner;
 
-// Só para visualisar o mapa e adicionar trotinetes nele de maneira mais grafica.
+// SO PARA TESTES.
+// Para visualisar o mapa e adicionar trotinetes nele de maneira mais grafica.
 public class ShowMapa {
     public static void main(String[] args) {
         int size = 10;
