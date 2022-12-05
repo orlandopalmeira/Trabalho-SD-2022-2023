@@ -3,7 +3,7 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-
+// TODO Determinar nestas funcões como é retornado a informação de quantas trotinetes existem num local, tendo em conta que pode haver mais que uma trotinete no mesmo sitio.
 public class Mapa {
 
     //ReentrantLock lock;
@@ -77,7 +77,7 @@ public class Mapa {
         this.randomTrotinetes(num_trotinetes);
     }
 
-    /** Coloca um certo número de trotinetes aleatoriamente no mapa.
+    /** Coloca um certo número de trotinetes aleatoriamente no mapa, havendo o cuidado de não colocar trotinetes no mesmo sitio.
      */
     private void randomTrotinetes(int num){
         if (num > N*N) num = N*N; // no caso de haver mais trotinetes pra colocar do que espaços disponíveis.
@@ -182,12 +182,13 @@ public class Mapa {
         }
     }
 
-    /** Para notificacar aquando um local passe a estar vazio. NOT SURE DA UTILIDADE.
+    /** Para notificacar aquando aparece uma trotinete num determinado local.
+     * AVISO ((Não está totalmente implementado))
      */
-    public void getLocalVazio(int x, int y) throws InterruptedException {
+    public void getNotifTrot(int x, int y) throws InterruptedException {
         mapa[x][y].lockLocal();
         try {
-            while (mapa[x][y].getNtrotinetes() > 0){
+            while (mapa[x][y].getNtrotinetes() == 0){
                 mapa[x][y].getCond().await();
             }
             throw new InterruptedException();
@@ -203,6 +204,7 @@ public class Mapa {
         this.lock.writeLock().lock();
         try{
             this.mapa[x][y].somar();
+            //this.mapa[x][y].getCond().signalAll(); Não está corretamente implementado.
         } finally {
             this.lock.writeLock().unlock();
         }
@@ -223,7 +225,8 @@ public class Mapa {
      * Não faço locks gerais do mapa nesta função uma vez que é auxiliar a funcoes que o fazem.
      */
     private int getTrotinetasIn(int x, int y){
-        return this.mapa[x][y].getNtrotinetes();
+        Localizacao l = this.getLocalizacao(x,y);
+        return l.getNtrotinetes();
     }
 
 
@@ -283,7 +286,7 @@ public class Mapa {
         }
         for (Pair p: arround){
             Localizacao l = this.getLocalizacao(p.getX(), p.getY());
-            if (l.getNtrotinetes() > 0){
+            for (int i = 0; i < l.getNtrotinetes(); i++){ // repito a coordenada quando ha mais que uma trotinete no mesmo sitio.
                 trotinetes_livres.add(p);
             }
             l.unlockLocal(); // Faço unlock pois a funcao lockTheseLocais lockou estas Localizacao's.
