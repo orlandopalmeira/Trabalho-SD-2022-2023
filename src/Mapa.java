@@ -117,7 +117,8 @@ public class Mapa {
         return ret;
     }
 
-    /** Retorna a matriz do mapa - inutilizado
+    /**
+     * Retorna a matriz do mapa - inutilizado
      */
     public Localizacao[][] getMapa() {
         Localizacao[][] newMapa = new Localizacao[N][N];
@@ -134,13 +135,15 @@ public class Mapa {
         }
         return newMapa;
     }
-    /** Retorna o tamanho do mapa.
+    /**
+     * Retorna o tamanho do mapa.
      */
     public int getN(){
         return this.N;
     }
 
-    /** Retorna o objeto Localizacao naquela coordenada.
+    /**
+     * Retorna o objeto Localizacao naquela coordenada.
      * Retorna Null caso as coordenadas não sejam válidas.
      */
     public Localizacao getLocalizacao(int x, int y) {
@@ -154,7 +157,8 @@ public class Mapa {
         }
     }
 
-    /** Bloqueia devidamente todos os locais individuais de maneira a libertar as localizacoes mais rapidamente. (PERIGOSA)
+    /**
+     * Bloqueia devidamente todos os locais individuais de maneira a libertar as localizacoes mais rapidamente. (PERIGOSA)
      */
     private void lockAllLocais(){
         this.lock.readLock().lock();
@@ -167,7 +171,8 @@ public class Mapa {
         }
     }
 
-    /** Bloqueia devidamente todos os locais individuais de maneira a libertar as localizacoes mais rapidamente. (PERIGOSA)
+    /**
+     * Bloqueia devidamente todos os locais individuais de maneira a libertar as localizacoes mais rapidamente. (PERIGOSA)
      */
     private void lockTheseLocais(List<Pair> locals){
         Collections.sort(locals);
@@ -182,7 +187,8 @@ public class Mapa {
         }
     }
 
-    /** Para notificacar aquando aparece uma trotinete num determinado local.
+    /**
+     * Para notificacar aquando aparece uma trotinete num determinado local.
      * AVISO ((Não está totalmente implementado))
      */
     public void getNotifTrot(int x, int y) throws InterruptedException {
@@ -198,7 +204,8 @@ public class Mapa {
         }
     }
 
-    /** Adiciona uma trotinete ao local indicado.
+    /**
+     * Adiciona uma trotinete ao local indicado.
      */
     public void addTrotineta(int x, int y){
         this.lock.writeLock().lock();
@@ -210,7 +217,8 @@ public class Mapa {
         }
     }
 
-    /** Retira uma trotinete ao local indicado.
+    /**
+     * Retira uma trotinete ao local indicado.
      */
     public void retiraTrotineta(int x, int y){
         this.lock.writeLock().lock();
@@ -221,7 +229,8 @@ public class Mapa {
         }
     }
 
-    /** Retorna o número de trotinetes num determinado local.
+    /**
+     * Retorna o número de trotinetes num determinado local.
      * Não faço locks gerais do mapa nesta função uma vez que é auxiliar a funcoes que o fazem.
      */
     private int getTrotinetasIn(int x, int y){
@@ -230,7 +239,8 @@ public class Mapa {
     }
 
 
-    /** Indica as posições que estão a volta da Localizacao num determinado raio.
+    /**
+     * Indica as posições que estão a volta da Localizacao num determinado raio.
      * Não se faz nenhum lock nesta função, pois é puramente matematica.
      * Alternativa a getSurrondings que recebe dois inteiros que são as coordenadas.
      * DETALHE: A coordenada central que vem no argumento, é também retornada, sendo ela própria considerada como surronding coordinate dela mesmo.
@@ -239,7 +249,8 @@ public class Mapa {
         return this.getSurroundings(p.getX(), p.getY(), raio);
     }
 
-    /** Indica as posições que estão a volta da Localizacao num determinado raio.
+    /**
+     * Indica as posições que estão a volta da Localizacao num determinado raio.
      * Não se faz nenhum lock nesta função, pois é puramente matematica.
      * DETALHE: A coordenada central que vem no argumento, é também retornada, sendo ela própria considerada como surronding coordinate dela mesmo.
      */
@@ -272,7 +283,8 @@ public class Mapa {
         return surroundings;
     }
 
-    /** Indica as posições em que estão trotinetes num raio de 2 relativamente a uma determinada posição. REQUISITO 1
+    /**
+     * Indica as posições em que estão trotinetes num raio de 2 relativamente a uma determinada posição. REQUISITO 1
      */
     public List<Pair> trotinetesArround(int x, int y){
         int raio = 2;
@@ -294,7 +306,8 @@ public class Mapa {
         return trotinetes_livres;
     }
 
-    /** Retorna uma List<Localizacao> onde indica a posição de trotinetes.
+    /**
+     * Retorna uma List<Localizacao> onde indica a posição de trotinetes.
      * Funcao auxiliar.
      */
     public List<Pair> whereAreTrotinetes(){
@@ -311,7 +324,8 @@ public class Mapa {
         return trotinetes;
     }
 
-    /** Retorna uma List<Localizacao> onde indica a inexistência de trotinetes num raio de 2.
+    /**
+     * Retorna uma List<Localizacao> onde indica a inexistência de trotinetes num raio de 2.
      * Funcao auxiliar.
      */
     public List<Pair> getClearAreas(){
@@ -335,7 +349,8 @@ public class Mapa {
         }
     }
 
-    /** Função que retorna todas as recompensas em vigor naquele determinado mapa.
+    /**
+     * Função que retorna todas as recompensas em vigor naquele determinado mapa.
      * O critério de recompensa atual é: o destino não tem nenhuma trotinete num raio de 2 unidades, e a origem tem que ter uma trotineta e no seu raio de 2 unidades tbm existir, pelo menos, uma outra trotineta.
      */
     public Set<Recompensa> getRewards(){
@@ -347,16 +362,21 @@ public class Mapa {
 
             // Obtencao de locais de origem para recompensas.
             List<Pair> trotinetas = this.whereAreTrotinetes();
-            for (Pair central: trotinetas){ // central = central trotinet em que está a ser feita a verificaçao inicial.
+            //for (Pair central: trotinetas){
+            for (int i = 0; i < trotinetas.size(); i++){
+                Pair central = trotinetas.get(i);
                 List<Pair> surronding = this.getSurroundings(central.getX(), central.getY(), 2);
-                for (Pair sur: surronding){ // sur = surrounding trotinet que está a ser verificada relativamente à trotinete central.
-                    // talvez adicionar nº de trotinetes na area como fator no valor da recompensa. Para isso seria preciso alterar a classe recompensa para admitir um valor de nº de trotinetes na area de origem para usar como fator no valor da recompensa.
-                    if (!sur.equals(central) && this.getTrotinetasIn(sur.getX(), sur.getY()) > 0){
+                int sum = 0;
+                for (Pair sur: surronding){
+                    Localizacao l = getLocalizacao(sur.getX(), sur.getY());
+                    sum += this.getTrotinetasIn(sur.getX(), sur.getY());
+                    if (sum > 1){ // se na area estiver mais que 1 trotineta, esta área é considerada cheia, sendo uma origem de recompensa.
                         for (Pair ca: clearAreas){
                             rewards.add(new Recompensa(central, ca));
-                            //rewards.add(new Recompensa(sur, ca));
+                            rewards.add(new Recompensa(sur, ca)); //
                         }
-                        //trotinetas.remove(sur); // uma vez que já se faz a adiçao das recompensas quando se encontra uma trotineta surronding.
+                        trotinetas.remove(sur); // uma vez que já se faz a adiçao das recompensas quando se encontra uma trotineta surronding.
+                        break;
                     }
                 }
             }
@@ -366,11 +386,12 @@ public class Mapa {
         }
     }
 
-    /** Função que calcula as recompensas em vigor que têm origem num raio de 2 unidades de (x,y).
+    /**
+     * Função que calcula as recompensas em vigor que têm origem num raio de 2 unidades de (x,y).
+     * O critério de recompensa atual é: o destino não tem nenhuma trotinete num raio de 2 unidades, e a origem tem que ter uma trotineta e no seu raio de 2 unidades tbm existir, pelo menos, uma outra trotineta.
      */
     public Set<Recompensa> getRewardsWithOrigin(int x, int y){
         Set<Recompensa> rewards = new HashSet<Recompensa>();
-        //int raio = 2;
         this.lock.readLock().lock();
         try{
             // Locais destino de recompensas.
@@ -378,16 +399,20 @@ public class Mapa {
 
             // Obtencao de locais de origem para recompensas.
             List<Pair> trotinetas = this.trotinetesArround(x,y);
-            for (Pair central: trotinetas){
+            for (int i = 0; i < trotinetas.size(); i++){
+                Pair central = trotinetas.get(i);
                 List<Pair> surronding = this.getSurroundings(central.getX(), central.getY(), 2);
+                int sum = 0;
                 for (Pair sur: surronding){
-                    // talvez adicionar nº de trotinetes na area como fator no valor da recompensa. Para isso seria preciso alterar a classe recompensa para admitir um valor de nº de trotinetes na area de origem para usar como fator no valor da recompensa.
-                    if (!sur.equals(central) && this.getTrotinetasIn(sur.getX(), sur.getY()) > 0){
+                    Localizacao l = getLocalizacao(sur.getX(), sur.getY());
+                    sum += this.getTrotinetasIn(sur.getX(), sur.getY());
+                    if (sum > 1){ // se na area estiver mais que 1 trotineta, esta área é considerada cheia, sendo uma origem de recompensa.
                         for (Pair ca: clearAreas){
                             rewards.add(new Recompensa(central, ca));
-                            //rewards.add(new Recompensa(sur, ca));
+                            rewards.add(new Recompensa(sur, ca)); //
                         }
-                        //trotinetas.remove(sur); // uma vez que já se faz a adiçao das recompensas quando se encontra uma trotineta surronding.
+                        trotinetas.remove(sur); // uma vez que já se faz a adiçao das recompensas quando se encontra uma trotineta surronding.
+                        break;
                     }
                 }
             }
@@ -401,7 +426,6 @@ public class Mapa {
     @Override
     public String toString() {
         StringBuilder res = new StringBuilder();
-        // tem acrescentado indices
         res.append(" :");
         for (int i = 0; i < N; i++) {
             res.append(i);
