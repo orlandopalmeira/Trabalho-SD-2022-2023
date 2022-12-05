@@ -11,7 +11,7 @@ public class Mapa {
     //Condition cond; // por enquanto ainda n esta utilizado, mas talvez se use para alertar em casos de escrita no mapa para alterar geração de recompensas.
     private Localizacao[][] mapa;   /** em cada posição do array temos a localizacao nessa posição */
     private int num_trotinetes;     /** número de trotinetes */
-    int N;                          /** tamanho do mapa */
+    private int N;                  /** tamanho do mapa */
 
     /**
      * Construtor da classe Mapa.
@@ -21,7 +21,7 @@ public class Mapa {
     public Mapa(int n) {
         this.lock = new ReentrantReadWriteLock();
         //this.cond = lock.newCondition();
-        this.N = n; ///// vai ser 20 no final
+        this.N = n;
         this.mapa = new Localizacao[N][N];
         for (int i = 0; i < N; i++) {
             for (int j = 0; j < N; j++) {
@@ -49,7 +49,7 @@ public class Mapa {
     public Mapa(int n, int trotinetes) {
         this.lock = new ReentrantReadWriteLock();
         //this.cond = lock.newCondition();
-        this.N = n; ///// vai ser 20 no final
+        this.N = n;
         this.mapa = new Localizacao[N][N];
         for (int i = 0; i < N; i++) {
             for (int j = 0; j < N; j++) {
@@ -97,7 +97,6 @@ public class Mapa {
     public boolean validPos (int x, int y){
         return x < this.N && y < this.N && x >= 0 && y >= 0;
     }
-
 
     /**
      * Transforma um Pair na respetiva Localizacao.
