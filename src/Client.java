@@ -6,7 +6,7 @@ import java.util.HashSet;
 
 
 public class Client {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
         Socket s = new Socket("localhost", 12345);
         Demultiplexer m = new Demultiplexer(new Connection(s)); // TODO Demultiplexer não implementado, mas em principio esta será a estrutura.
         //Connection m = new Connection(s);
