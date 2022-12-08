@@ -10,12 +10,14 @@ public class Main {
 
         System.out.println("Todas as recompensas:");
         Set<Recompensa> recompensas = mapa.getRewards();
-        Recompensa.printRecompensas(recompensas);
+        String string = Recompensa.toStringRecompensas(recompensas);
+        System.out.println(string);
 
         int x = 5, y = 2;
         System.out.printf("\nRecompensas com origem em (%d,%d):\n", x, y);
         Set<Recompensa> recompensasOrigin = mapa.getRewardsWithOrigin(x,y);
-        Recompensa.printRecompensas(recompensasOrigin);
+        string = Recompensa.toStringRecompensas(recompensas);
+        System.out.println(string);
 
         System.out.println("Done!");
     }

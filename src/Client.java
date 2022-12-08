@@ -102,6 +102,7 @@ public class Client {
                     + "\n"
                     + "Insira a opção que pretende: ");
             String option = stdin.readLine();
+            String location, response;
             switch(option) {
                 case "0": // Sair da aplicação.
                     //m.send(99, new byte[0]);
@@ -110,7 +111,6 @@ public class Client {
 
 
                 case "1": // "1) Trotinetes livres
-                    String location;
                     while (true) {
                         System.out.print("Insira a localização no formato \"x y\": ");
                         location = stdin.readLine();
@@ -118,7 +118,7 @@ public class Client {
                         System.out.println("Input inválido.");
                     }
                     m.send(2, location.getBytes());
-                    String response = new String(m.receive(2));
+                    response = new String(m.receive(2));
                     if (response.length() == 0)
                         System.out.println("Não há trotinetes na área.");
                     else {
@@ -128,7 +128,20 @@ public class Client {
                     break;
 
                 case "2": // 2) Recompensas
-
+                    while (true) {
+                        System.out.print("Insira a localização no formato \"x y\": ");
+                        location = stdin.readLine();
+                        if (validLocation(location)) break;
+                        System.out.println("Input inválido.");
+                    }
+                    m.send(3, location.getBytes());
+                    response = new String(m.receive(3));
+                    if (response.length() == 0)
+                        System.out.println("\nNão há recompensas na área.\n");
+                    else {
+                        System.out.println("\nRecompensas:");
+                        System.out.print(response);
+                    }
                     break;
 
                 case "3": // 3) Reservar trotinete

@@ -423,6 +423,7 @@ public class Mapa {
 
 
     @Override
+    // TODO talvez implementar gestao de concorrencia no toString de mapa.
     public String toString() {
         StringBuilder res = new StringBuilder();
         res.append(" :");

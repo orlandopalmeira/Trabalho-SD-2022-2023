@@ -14,18 +14,31 @@ public class Recompensa {
     }
 
 
-    /** Função matemática que calcula o valor da recompensa tendo em conta a distância entre a origem e o destino.
+    /**
+     * Função matemática que calcula o valor da recompensa tendo em conta a distância entre a origem e o destino.
+     * O valor da recompensa é igual à distância entre a origem e o destino.
      */
     public int calculaRecompensa(){
         return origem.distance(destino); // por enquanto a recompensa é igual à distancia.
     }
 
 
-    public static void printRecompensas(Collection<Recompensa> recs){
-        List<Recompensa> sorted_ = recs.stream().sorted((r1, r2) -> {return r2.reward - r1.reward;}).collect(Collectors.toList());
+    public static String toStringRecompensas(Collection<Recompensa> recs){
+        List<Recompensa> sorted_ = recs.stream().sorted((r1, r2) -> {return r2.reward - r1.reward;}).toList();
+        StringBuilder res = new StringBuilder();
         for(Recompensa r : sorted_){
-            System.out.println(r);
+            res.append(r).append("\n");
         }
+        return res.toString();
+    }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "origem=" + origem +
+                ", destino=" + destino +
+                ", valor=" + reward +
+                '}';
     }
 
 
@@ -45,7 +58,6 @@ public class Recompensa {
                reward == r.reward;
     }
 
-
     @Override
     public int hashCode() {
         Integer xo = origem.getX(),
@@ -54,15 +66,5 @@ public class Recompensa {
                 yd = destino.getY(),
                 rewrd = this.reward;
         return xo.hashCode() + yo.hashCode() + xd.hashCode() + yd.hashCode() + rewrd.hashCode();
-    }
-
-
-    @Override
-    public String toString() {
-        return "Recompensa{" +
-                "origem=" + origem +
-                ", destino=" + destino +
-                ", recompensa=" + reward +
-                '}';
     }
 }

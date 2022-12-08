@@ -3,13 +3,15 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
+import java.util.Set;
 
 public class Server {
-    public static void main(String[] args) throws IOException, ClassNotFoundException {
+    public static void main(String[] args) throws IOException{
         ServerSocket ss = new ServerSocket(12345);
 
         final Accounts accounts = new Accounts();
         final Mapa mapa = new Mapa(10);
+        System.out.println(mapa); // DEBUG
 
         while(true) {
             Socket s = ss.accept();
@@ -75,6 +77,16 @@ public class Server {
                         }
                         // Probing de recompensas com origem numa localizacao.
                         else if (frame.tag == 3) {
+                            System.out.println("Probing de recompensas."); // pequeno log.
+                            String data = new String(frame.data);
+                            String [] tokens = data.split(" ");
+                            int x = Integer.parseInt(tokens[0]);
+                            int y = Integer.parseInt(tokens[1]);
+                            Set<Recompensa> rs = mapa.getRewardsWithOrigin(x,y);
+                            c.send(frame.tag, Recompensa.toStringRecompensas(rs).getBytes());
+                        }
+                        // Reservar trotinete
+                        else if (frame.tag == 4){
 
                             // todo to be determined.
                         }
