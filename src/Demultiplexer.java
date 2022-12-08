@@ -7,25 +7,29 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
 
-////////////////////// TALVEZ INACABADO //////////////////////
 public class Demultiplexer implements AutoCloseable {
     private final Connection c;
     private final ReentrantLock l;
-    private final Map<Integer, FrameValue> map;
-    private IOException exception = null;
+    private final Map<Integer, TaggedMessages> map;
+    private Exception exception = null;
 
-    private class FrameValue {
+
+    private class TaggedMessages {
         Queue<byte[]> queue = new ArrayDeque<>();
         Condition cond = l.newCondition();
     }
 
+    /**
+     * O construtor já chama o seu método start() automaticamente.
+     * @param conn Objeto Connection com o respetivo socket associado.
+     */
     public Demultiplexer(Connection conn) {
         this.c = conn;
         this.l = new ReentrantLock();
-        this.map = new HashMap<Integer, FrameValue>();
+        this.map = new HashMap<Integer, TaggedMessages>();
+        this.start();
     }
 
-    // Vai estar sempre a receber dados e a coloca-los no respetivo lugar no map.
     public void start() {
         new Thread(() -> {
             try{
@@ -33,18 +37,26 @@ public class Demultiplexer implements AutoCloseable {
                     Frame frame = this.c.receive();
                     l.lock();
                     try{
-                        FrameValue fv = map.get(frame.tag);
-                        if (fv == null){
-                            fv = new FrameValue();
-                            map.put(frame.tag, fv);
+                        TaggedMessages td = map.get(frame.tag);
+                        if (td == null){
+                            td = new TaggedMessages();
+                            map.put(frame.tag, td);
                         }
-                        fv.queue.add(frame.data);
-                        fv.cond.signalAll();
+                        td.queue.add(frame.data);
+                        td.cond.signal();
                     } finally {
                         l.unlock();
                     }
                 }
-            } catch (IOException exc) {exception = exc;}
+            } catch (IOException exc) {
+                this.l.lock();
+                try{
+                    this.exception = exc;
+                    this.map.forEach((k,v) -> v.cond.signalAll()); // acorda todos os receives em espera para que o programa termine em caso de uma excecao.
+                } finally {
+                    this.l.unlock();
+                }
+            }
         }).start();
     }
 
@@ -56,22 +68,24 @@ public class Demultiplexer implements AutoCloseable {
         c.send(tag, data);
     }
 
-    public byte[] receive(int tag) throws IOException, InterruptedException {
+    public byte[] receive(int tag) throws Exception {
         l.lock();
         try{
-            FrameValue fv = map.get(tag);
-            if (fv == null){
-                fv = new FrameValue();
-                map.put(tag, fv);
+            TaggedMessages td = map.get(tag);
+            if (td == null){
+                td = new TaggedMessages();
+                map.put(tag, td);
             }
             while(true){
-                if (!fv.queue.isEmpty()){
-                    byte[] data = fv.queue.poll();
+                if (exception != null){
+                    throw this.exception;
+                }
+                if (!td.queue.isEmpty()){
+                    byte[] data = td.queue.poll();
                     return data;
                 }
-                else{
-                    fv.cond.await();
-                }
+                td.cond.await();
+
             }
         } finally {
             l.unlock();

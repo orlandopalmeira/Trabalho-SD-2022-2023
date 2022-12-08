@@ -6,10 +6,9 @@ import java.util.HashSet;
 
 
 public class Client {
-    public static void main(String[] args) throws IOException, InterruptedException {
+    public static void main(String[] args) throws Exception {
         Socket s = new Socket("localhost", 12345);
         Demultiplexer m = new Demultiplexer(new Connection(s)); // TODO Demultiplexer não implementado, mas em principio esta será a estrutura.
-        //Connection m = new Connection(s);
 
         HashSet<Thread> alarms = new HashSet<>(); // threads que irão estar à escuta de notificações.
 
