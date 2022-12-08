@@ -20,7 +20,6 @@ public class Mapa {
      */
     public Mapa(int n) {
         this.lock = new ReentrantReadWriteLock();
-        //this.cond = lock.newCondition();
         this.N = n;
         this.mapa = new Localizacao[N][N];
         for (int i = 0; i < N; i++) {
@@ -48,7 +47,6 @@ public class Mapa {
      */
     public Mapa(int n, int trotinetes) {
         this.lock = new ReentrantReadWriteLock();
-        //this.cond = lock.newCondition();
         this.N = n;
         this.mapa = new Localizacao[N][N];
         for (int i = 0; i < N; i++) {
@@ -65,7 +63,6 @@ public class Mapa {
      */
     public Mapa() {
         this.lock = new ReentrantReadWriteLock();
-        //this.cond = lock.newCondition();
         this.N = 20;
         this.mapa = new Localizacao[N][N];
         for (int i = 0; i < N; i++) {
@@ -90,6 +87,13 @@ public class Mapa {
                 i++;
             }
         }
+    }
+
+    /**
+     * Retorna o tamanho do mapa.
+     */
+    public int getN(){
+        return this.N;
     }
 
     /** Verifica se a posição está dentro dos limites do mapa estabelecido.
@@ -135,12 +139,7 @@ public class Mapa {
         }
         return newMapa;
     }
-    /**
-     * Retorna o tamanho do mapa.
-     */
-    public int getN(){
-        return this.N;
-    }
+
 
     /**
      * Retorna o objeto Localizacao naquela coordenada.

@@ -36,7 +36,7 @@ public class Accounts implements Serializable {
     public boolean addAccount(String username, String password) {
         l.writeLock().lock();
         try {
-            if (!accountExists(username)) return false;
+            if (accountExists(username)) return false;
             contas.put(username, password);
             return true;
         } finally {
@@ -52,6 +52,8 @@ public class Accounts implements Serializable {
     private boolean accountExists(String username) {
         return contas.containsKey(username);
     }
+
+
 
     /**
      * Serializing methods that may not be used.
