@@ -59,6 +59,7 @@ public class Client {
                 String response = new String(m.receive(1));
                 if(!response.startsWith("Erro")) {
                     username = uName;
+                    System.out.printf("\nBem-vindo %s!%n", uName);
                 }
                 else
                     System.out.println("\n" + response + "\n");

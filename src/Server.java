@@ -1,12 +1,20 @@
+import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
 public class Server {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
         ServerSocket ss = new ServerSocket(12345);
 
-        final Accounts accounts = new Accounts();
+        final Accounts accounts;
+        /* If the server has been run before, attempts to fetch the accounts and location history from the previous run. */
+        File f = new File("accounts.ser");
+        if(!f.exists())
+            accounts = new Accounts();
+        else
+            accounts = Accounts.deserialize("accounts.ser");
+
         final Mapa mapa = new Mapa(10);
 
         while(true) {
