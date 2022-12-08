@@ -11,6 +11,8 @@ public class Accounts implements Serializable {
 
     public Accounts() {
         this.contas = new HashMap<>();
+        this.contas.put("re", "re");
+        this.contas.put("1", "1");
     }
 
     /**

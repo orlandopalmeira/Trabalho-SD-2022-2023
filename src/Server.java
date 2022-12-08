@@ -7,14 +7,7 @@ public class Server {
     public static void main(String[] args) throws IOException, ClassNotFoundException {
         ServerSocket ss = new ServerSocket(12345);
 
-        final Accounts accounts;
-        /* If the server has been run before, attempts to fetch the accounts and location history from the previous run. */
-        File f = new File("accounts.ser");
-        if(!f.exists())
-            accounts = new Accounts();
-        else
-            accounts = Accounts.deserialize("accounts.ser");
-
+        final Accounts accounts = new Accounts();
         final Mapa mapa = new Mapa(10);
 
         while(true) {
