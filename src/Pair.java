@@ -1,3 +1,5 @@
+import java.util.List;
+
 /**
  * Esta é uma classe auxiliar que implementa pares.
  */
@@ -42,6 +44,14 @@ public class Pair implements Comparable<Pair>{
             return Integer.compare(this.y, p.y);
         }
         return Integer.compare(this.x, p.x);
+    }
+
+    public static String toStringPairs(List<Pair> pairs){
+        StringBuilder ret = new StringBuilder();
+        for(Pair p: pairs){
+            ret.append(p).append("\n");
+        }
+        return ret.toString();
     }
 
     @Override

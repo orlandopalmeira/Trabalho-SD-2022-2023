@@ -2,6 +2,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.List;
 
 public class Server {
     public static void main(String[] args) throws IOException, ClassNotFoundException {
@@ -20,12 +21,13 @@ public class Server {
                     boolean isLoggedIn = false;
                     while(true){
                         Frame frame = c.receive();
+                        /*
                         // se não pretende registar-se ou fazer login, então não é permitido acesso às funcionalidades.
-                        // TODO talvez nem seja preciso esta verificação se o cliente n permitir avancar.
                         if (frame.tag != 0 && frame.tag != 1 && !isLoggedIn){
                             c.send(frame.tag, "Erro. Não está registrado.".getBytes());
                             continue;
                         }
+                         */
                         // User registration attempt
                         if (frame.tag == 0) {
                             System.out.println("User registration attempt."); // pequeno log.
@@ -61,14 +63,26 @@ public class Server {
                             } else
                                 c.send(frame.tag, "Erro-conta não existe.".getBytes()); // Talvez alterar para mensagem mais curta.
                         }
-                        //
+                        // Probing de trotinetes à volta duma área.
                         else if (frame.tag == 2){
+                            System.out.println("Probing de trotinetes."); // pequeno log.
+                            String data = new String(frame.data);
+                            String [] tokens = data.split(" ");
+                            int x = Integer.parseInt(tokens[0]);
+                            int y = Integer.parseInt(tokens[1]);
+                            List<Pair> ls = mapa.trotinetesArround(x,y);
+                            c.send(frame.tag, Pair.toStringPairs(ls).getBytes());
+                        }
+                        //
+                        else if (frame.tag == 3) {
+
                             // todo to be determined.
                         }
 
                     }
                 } catch (IOException exc){
                     System.out.println(exc);
+                    //throw exc;
                 }
             };
             new Thread(processing).start();
