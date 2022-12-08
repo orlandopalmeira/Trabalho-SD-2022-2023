@@ -29,7 +29,7 @@ public class Mapa {
         }
         this.num_trotinetes = 8;
         // ESTOU A DEFINIR UMA ESTRUTURA MAIS EXATA, INVES DE INICIAR ALEATORIAMENTE AS TROTINETAS POR MOTIVOS DE DEBUG /////////////////
-        this.addTrotineta(1,1);
+        this.addTrotineta(2,1);
         this.addTrotineta(2,4);
         this.addTrotineta(4,1);
         this.addTrotineta(5,9);
@@ -173,7 +173,8 @@ public class Mapa {
     /**
      * Bloqueia devidamente todos os locais individuais de maneira a libertar as localizacoes mais rapidamente. (PERIGOSA)
      */
-    private void lockTheseLocais(List<Pair> locals){
+    private void lockTheseLocais(List<Pair> localizacoes){
+        List<Pair> locals = new ArrayList<>(localizacoes);
         Collections.sort(locals);
         this.lock.readLock().lock();
         try{
@@ -302,6 +303,7 @@ public class Mapa {
             }
             l.unlockLocal(); // Faço unlock pois a funcao lockTheseLocais lockou estas Localizacao's.
         }
+
         return trotinetes_livres;
     }
 

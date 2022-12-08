@@ -91,9 +91,9 @@ public class Client {
         boolean exit = false;
         while (!exit) {
             System.out.print("\n***TROTINETAS***\n\n"
-                    + "O que pretende fazer?\n"
-                    + "1) Trotinetes livres.\n"
-                    + "2) Recompensas.\n"
+                    + "O que pretende?\n"
+                    + "1) Indicar trotinetes livres numa área.\n"
+                    + "2) Indicar recompensas com origem numa área.\n"
                     + "3) Reservar trotinete.\n"
                     + "4) Estacionar trotinete.\n"
                     + "5) Ativar notificação.\n"
@@ -145,6 +145,15 @@ public class Client {
                     break;
 
                 case "3": // 3) Reservar trotinete
+                    while (true) {
+                        System.out.print("Insira a localização no formato \"x y\": ");
+                        location = stdin.readLine();
+                        if (validLocation(location)) break;
+                        System.out.println("Input inválido.");
+                    }
+                    m.send(4, location.getBytes());
+                    response = new String(m.receive(3));
+                    // tratar da resposta recebida
 
                     break;
 

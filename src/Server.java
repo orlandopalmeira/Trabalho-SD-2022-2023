@@ -67,27 +67,42 @@ public class Server {
                         }
                         // Probing de trotinetes à volta duma área.
                         else if (frame.tag == 2){
-                            System.out.println("Probing de trotinetes."); // pequeno log.
                             String data = new String(frame.data);
                             String [] tokens = data.split(" ");
                             int x = Integer.parseInt(tokens[0]);
                             int y = Integer.parseInt(tokens[1]);
+                            System.out.printf("Probing de trotinetes em (%d,%d).%n", x,y); // LOG
                             List<Pair> ls = mapa.trotinetesArround(x,y);
                             c.send(frame.tag, Pair.toStringPairs(ls).getBytes());
                         }
                         // Probing de recompensas com origem numa localizacao.
                         else if (frame.tag == 3) {
-                            System.out.println("Probing de recompensas."); // pequeno log.
                             String data = new String(frame.data);
                             String [] tokens = data.split(" ");
                             int x = Integer.parseInt(tokens[0]);
                             int y = Integer.parseInt(tokens[1]);
+                            System.out.printf("Probing de recompensas em (%d,%d).%n", x,y); // LOG
                             Set<Recompensa> rs = mapa.getRewardsWithOrigin(x,y);
                             c.send(frame.tag, Recompensa.toStringRecompensas(rs).getBytes());
                         }
                         // Reservar trotinete
                         else if (frame.tag == 4){
+                            String data = new String(frame.data);
+                            String [] tokens = data.split(" ");
+                            int x = Integer.parseInt(tokens[0]);
+                            int y = Integer.parseInt(tokens[1]);
+                            System.out.printf("Pedido de reserva de trotinete em (%d,%d).%n", x,y); // LOG
+                            List<Pair> l = mapa.trotinetesArround(x,y);
+                            if(l.size() > 0){
+                                Pair closest = l.get(0);
+                                // Enviar codigo de sucesso e localizacao
+                                c.send(frame.tag, closest.toString().getBytes());
+                            }
+                            else{
+                                // Enviar codigo de insucesso.
+                                c.send(frame.tag, "".getBytes());
 
+                            }
                             // todo to be determined.
                         }
 
