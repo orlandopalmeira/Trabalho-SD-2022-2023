@@ -6,9 +6,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 // TODO Determinar nestas funcões como é retornado a informação de quantas trotinetes existem num local, tendo em conta que pode haver mais que uma trotinete no mesmo sitio.
 public class Mapa {
 
-    //ReentrantLock lock;
     ReentrantReadWriteLock lock;
-    //Condition cond; // por enquanto ainda n esta utilizado, mas talvez se use para alertar em casos de escrita no mapa para alterar geração de recompensas.
     private Localizacao[][] mapa;   /** em cada posição do array temos a localizacao nessa posição */
     private int num_trotinetes;     /** número de trotinetes */
     private int N;                  /** tamanho do mapa */
@@ -318,7 +316,7 @@ public class Mapa {
      * Retorna uma List<Localizacao> onde indica a posição de trotinetes.
      * Funcao auxiliar.
      */
-    public List<Pair> whereAreTrotinetes(){
+    private List<Pair> whereAreTrotinetes(){
         List<Pair> trotinetes = new ArrayList<Pair>();
         this.lockAllLocais(); // Ja faz um lock do mapa e desbloqueia-o também após obter todos os locks individuais.
         for (int i = 0; i < N; i++) {
