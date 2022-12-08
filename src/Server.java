@@ -73,7 +73,7 @@ public class Server {
                             List<Pair> ls = mapa.trotinetesArround(x,y);
                             c.send(frame.tag, Pair.toStringPairs(ls).getBytes());
                         }
-                        //
+                        // Probing de recompensas com origem numa localizacao.
                         else if (frame.tag == 3) {
 
                             // todo to be determined.

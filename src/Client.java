@@ -108,7 +108,8 @@ public class Client {
                     exit = true;
                     break;
 
-                case "1":
+
+                case "1": // "1) Trotinetes livres
                     String location;
                     while (true) {
                         System.out.print("Insira a localização no formato \"x y\": ");
@@ -126,19 +127,19 @@ public class Client {
                     }
                     break;
 
-                case "2":
+                case "2": // 2) Recompensas
 
                     break;
 
-                case "3":
+                case "3": // 3) Reservar trotinete
 
                     break;
 
-                case "4":
+                case "4": // 4) Estacionar trotinete
 
                     break;
 
-                case "5":
+                case "5": // 5) Ativar notificação
 
                     break;
             }
