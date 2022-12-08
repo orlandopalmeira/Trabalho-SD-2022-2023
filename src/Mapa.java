@@ -6,7 +6,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 // TODO Determinar nestas funcões como é retornado a informação de quantas trotinetes existem num local, tendo em conta que pode haver mais que uma trotinete no mesmo sitio.
 public class Mapa {
 
-    ReentrantReadWriteLock lock;
     private Localizacao[][] mapa;   /** em cada posição do array temos a localizacao nessa posição */
     private int num_trotinetes;     /** número de trotinetes */
     private int N;                  /** tamanho do mapa */
@@ -17,7 +16,6 @@ public class Mapa {
      * @param n Tamanho do mapa.
      */
     public Mapa(int n) {
-        this.lock = new ReentrantReadWriteLock();
         this.N = n;
         this.mapa = new Localizacao[N][N];
         for (int i = 0; i < N; i++) {
@@ -44,7 +42,6 @@ public class Mapa {
      * @param trotinetes Número de trotinetes a introduzir no mapa.
      */
     public Mapa(int n, int trotinetes) {
-        this.lock = new ReentrantReadWriteLock();
         this.N = n;
         this.mapa = new Localizacao[N][N];
         for (int i = 0; i < N; i++) {
@@ -60,7 +57,6 @@ public class Mapa {
      * Construtor da classe Mapa, com tamanho de 20 unidades e 10 trotinetes inicialmente colocados.
      */
     public Mapa() {
-        this.lock = new ReentrantReadWriteLock();
         this.N = 20;
         this.mapa = new Localizacao[N][N];
         for (int i = 0; i < N; i++) {
@@ -107,21 +103,13 @@ public class Mapa {
         return x < this.N && y < this.N && x >= 0 && y >= 0;
     }
 
-    /**
-     * Transforma um Pair na respetiva Localizacao.
-     * @param p Objeto da classe Pair.
-     * @return Objeto correspondente da classe Localizacao.
-     */
-    public Localizacao pairToLocalizacao(Pair p){
-        return this.getLocalizacao(p.getX(), p.getY());
-    }
 
     /** Retorna uma lista dos objetos Localizacao correspondentes às coordenadas fornecidas.
      */
     public List<Localizacao> returnLocals(List<Pair> pairs){
         List<Localizacao> ret = new ArrayList<Localizacao>();
         for (Pair p: pairs){
-            ret.add(pairToLocalizacao(p));
+            ret.add(getLocalizacao(p));
         }
         return ret;
     }
@@ -131,17 +119,16 @@ public class Mapa {
      */
     public Localizacao[][] getMapa() {
         Localizacao[][] newMapa = new Localizacao[N][N];
-        try {
-            lock.readLock().lock();
+        lockAllLocais();
             for (int i = 0; i < N; i++) {
                 for (int j = 0; j < N; j++) {
-                    newMapa[i][j] = mapa[i][j].clone();
+                    try{
+                        newMapa[i][j] = mapa[i][j].clone();
+                    }finally {
+                        mapa[i][j].lock.readLock().unlock();
+                    }
                 }
             }
-        }
-        finally {
-            lock.readLock().unlock();
-        }
         return newMapa;
     }
 
@@ -162,33 +149,42 @@ public class Mapa {
     }
 
     /**
-     * Bloqueia devidamente todos os locais individuais de maneira a libertar as localizacoes mais rapidamente. (PERIGOSA)
+     * Retorna o objeto Localizacao naquela coordenada.
+     * Retorna Null caso as coordenadas não sejam válidas.
+     */
+    public Localizacao getLocalizacao(Pair p) {
+        int x = p.getX(), y = p.getY();
+        return getLocalizacao(x,y);
+    }
+
+    /**
+     * Bloqueia o readLock de todos os locais individuais. (PERIGOSA)
      */
     private void lockAllLocais(){
-        this.lock.readLock().lock();
-        try{
-            for (int i = 0; i < N; i++)
-                for (int j = 0; j < N; j++)
-                    mapa[i][j].lockLocal();
-        } finally {
-            this.lock.readLock().unlock();
-        }
+        for (int i = 0; i < N; i++)
+            for (int j = 0; j < N; j++)
+                mapa[i][j].lock.readLock().lock();
+    }
+
+    /**
+     * Desbloqueia o readLock de todos os locais individuais.
+     */
+    private void unlockAllLocais(){
+        for (int i = 0; i < N; i++)
+            for (int j = 0; j < N; j++)
+                mapa[i][j].lock.readLock().unlock();
     }
 
     /**
      * Bloqueia devidamente todos os locais individuais de maneira a libertar as localizacoes mais rapidamente. (PERIGOSA)
+     * É FEITO SÓ READLOCK.
      */
     private void lockTheseLocais(List<Pair> localizacoes){
         List<Pair> locals = new ArrayList<>(localizacoes);
         Collections.sort(locals);
-        this.lock.readLock().lock();
-        try{
-            for (Pair p : locals){
-                Localizacao l = this.getLocalizacao(p.getX(), p.getY());
-                l.lockLocal();
-            }
-        } finally {
-            this.lock.readLock().unlock();
+        for (Pair p : locals){
+            Localizacao l = this.getLocalizacao(p.getX(), p.getY());
+            l.lock.readLock().lock();
         }
     }
 
@@ -213,51 +209,49 @@ public class Mapa {
      * Adiciona uma trotinete ao local indicado.
      */
     public void addTrotineta(int x, int y){
-        this.lock.writeLock().lock();
-        try{
-            this.mapa[x][y].somar();
-            //this.mapa[x][y].getCond().signalAll(); Não está corretamente implementado.
-        } finally {
-            this.lock.writeLock().unlock();
-        }
+        // TODO lock local de variaveis do mapa, talvez.
+        num_trotinetes++;
+        this.mapa[x][y].somar();
+        //this.mapa[x][y].getCond().signalAll(); //Não está corretamente implementado.
     }
 
     /**
      * Retira uma trotinete ao local indicado.
      */
     public void retiraTrotineta(int x, int y){
-        this.lock.writeLock().lock();
-        try{
-            this.mapa[x][y].retirar();
-        } finally {
-            this.lock.writeLock().unlock();
-        }
+        // TODO lock local de variaveis do mapa, talvez.
+        num_trotinetes--;
+        this.mapa[x][y].retirar();
     }
 
-    /**
+    /** FIXME ARRANJADOS OS LOCKS
      * Retorna o número de trotinetes num determinado local.
      * Não faço locks gerais do mapa nesta função uma vez que é auxiliar a funcoes que o fazem.
      */
     private int getTrotinetasIn(int x, int y){
         Localizacao l = this.getLocalizacao(x,y);
-        return l.getNtrotinetes();
+        l.lock.readLock().lock();
+        try{
+            return l.getNtrotinetes();
+        } finally {
+            l.lock.readLock().unlock();
+        }
     }
 
 
     /**
-     * Indica as posições que estão a volta da Localizacao num determinado raio.
+     * Indica as posições que estão a volta do Pair num determinado raio.
      * Não se faz nenhum lock nesta função, pois é puramente matematica.
-     * Alternativa a getSurrondings que recebe dois inteiros que são as coordenadas.
-     * DETALHE: A coordenada central que vem no argumento, é também retornada, sendo ela própria considerada como surronding coordinate dela mesmo.
+     * DETALHE: A coordenada central que vem no argumento, é também retornada, sendo ela própria considerada como vizinha dela mesmo.
      */
     private List<Pair> getSurroundings(Pair p, int raio){
         return this.getSurroundings(p.getX(), p.getY(), raio);
     }
 
     /**
-     * Indica as posições que estão a volta da Localizacao num determinado raio.
+     * Indica as posições que estão a volta das coordenadas num determinado raio.
      * Não se faz nenhum lock nesta função, pois é puramente matematica.
-     * DETALHE: A coordenada central que vem no argumento, é também retornada, sendo ela própria considerada como surronding coordinate dela mesmo.
+     * DETALHE: A coordenada central que vem no argumento, é também retornada, sendo ela própria considerada como vizinha dela mesmo.
      */
     private List<Pair> getSurroundings(int x, int y, int raio){
         List<Pair> surroundings = new ArrayList<Pair>();
@@ -288,96 +282,89 @@ public class Mapa {
         return surroundings;
     }
 
-    /**
+    /** FIXME ARRANJADOS OS LOCKS
      * Indica as posições em que estão trotinetes num raio de 2 relativamente a uma determinada posição. REQUISITO 1
+     * Quando ha mais que uma tronineta numa coordenada é repetido o Pair.
      */
     public List<Pair> trotinetesArround(int x, int y){
         int raio = 2;
         List<Pair> trotinetes_livres = new ArrayList<Pair>();
         List<Pair> arround = this.getSurroundings(x, y, raio);
-        this.lock.readLock().lock();
-        try {
-            this.lockTheseLocais(arround); // Faço lock apenas aos sitios à volta da coordenada fornecida, pois só irei ler esses valores do mapa.
-        } finally {
-            this.lock.readLock().unlock();
-        }
+        this.lockTheseLocais(arround); // faz-se readLock das redondezas da coordenada de maneira ordenada.
         for (Pair p: arround){
             Localizacao l = this.getLocalizacao(p.getX(), p.getY());
             for (int i = 0; i < l.getNtrotinetes(); i++){ // repito a coordenada quando ha mais que uma trotinete no mesmo sitio.
                 trotinetes_livres.add(p);
             }
-            l.unlockLocal(); // Faço unlock pois a funcao lockTheseLocais lockou estas Localizacao's.
+            l.lock.readLock().unlock(); // Faço unlock pois a funcao lockTheseLocais lockou estas Localizacao's.
         }
-
         return trotinetes_livres;
     }
 
-    /**
+    /** FIXME ARRANJADOS OS LOCKS
      * Retorna uma List<Localizacao> onde indica a posição de trotinetes.
      * Funcao auxiliar.
      */
     private List<Pair> whereAreTrotinetes(){
         List<Pair> trotinetes = new ArrayList<Pair>();
-        this.lockAllLocais(); // Ja faz um lock do mapa e desbloqueia-o também após obter todos os locks individuais.
+        this.lockAllLocais();
         for (int i = 0; i < N; i++) {
             for (int j = 0; j < N; j++) {
                 if (getTrotinetasIn(i, j) > 0) {
                     trotinetes.add(new Pair(i,j));
                 }
-                mapa[i][j].unlockLocal();// desbloqueio individual das localizacoes previamente bloquadas em lockAllLocais.
+                mapa[i][j].lock.readLock().unlock();// desbloqueio individual das localizacoes previamente bloquadas em lockAllLocais.
             }
         }
         return trotinetes;
     }
 
-    /**
+    /** FIXME ARRANJADOS OS LOCKS
      * Retorna uma List<Localizacao> onde indica a inexistência de trotinetes num raio de 2.
      * Funcao auxiliar.
      */
     public List<Pair> getClearAreas(){
         List<Pair> clearLocals = new ArrayList<Pair>();
         HashSet<Localizacao> withTrotArround = new HashSet<Localizacao>();
-        this.lock.readLock().lock();
-        try{
-            List<Pair> trotinetes = this.whereAreTrotinetes();
-            for (Pair l : trotinetes){
-                withTrotArround.addAll(returnLocals(getSurroundings(l.getX(), l.getY(), 2)));
-            }
-            for (int i=0; i<N; i++)
-                for (int j=0; j<N; j++) {
-                    Localizacao l = getLocalizacao(i, j);
-                    if (!withTrotArround.contains(l))
-                        clearLocals.add(new Pair(l.getX(), l.getY()));
-                }
-            return clearLocals;
-        } finally {
-            this.lock.readLock().unlock();
+        lockAllLocais();
+        List<Pair> trotinetes = this.whereAreTrotinetes();
+        for (Pair p : trotinetes){
+            withTrotArround.addAll(returnLocals(getSurroundings(p, 2)));
         }
+        for (int i=0; i<N; i++)
+            for (int j=0; j<N; j++) {
+                Localizacao l = getLocalizacao(i, j);
+                if (!withTrotArround.contains(l))
+                    clearLocals.add(new Pair(l.getX(), l.getY()));
+                l.lock.readLock().unlock(); // desbloqueio individual das localizacoes previamente bloquadas em lockAllLocais.
+            }
+        return clearLocals;
     }
 
-    /**
+    /** FIXME ARRANJADOS OS LOCKS
      * Função que retorna todas as recompensas em vigor naquele determinado mapa.
      * O critério de recompensa atual é: o destino não tem nenhuma trotinete num raio de 2 unidades, e a origem tem que ter uma trotineta e no seu raio de 2 unidades tbm existir, pelo menos, uma outra trotineta.
      */
     public Set<Recompensa> getRewards(){
         Set<Recompensa> rewards = new HashSet<Recompensa>();
-        this.lock.readLock().lock();
-        try{
+
+        lockAllLocais();
+        try {
             // Locais destino de recompensas.
             List<Pair> clearAreas = this.getClearAreas();
 
             // Obtencao de locais de origem para recompensas.
             List<Pair> trotinetas = this.whereAreTrotinetes();
             //for (Pair central: trotinetas){
-            for (int i = 0; i < trotinetas.size(); i++){
+            for (int i = 0; i < trotinetas.size(); i++) {
                 Pair central = trotinetas.get(i);
                 List<Pair> surronding = this.getSurroundings(central.getX(), central.getY(), 2);
                 int sum = 0;
-                for (Pair sur: surronding){
+                for (Pair sur : surronding) {
                     Localizacao l = getLocalizacao(sur.getX(), sur.getY());
                     sum += this.getTrotinetasIn(sur.getX(), sur.getY());
-                    if (sum > 1){ // se na area estiver mais que 1 trotineta, esta área é considerada cheia, sendo uma origem de recompensa.
-                        for (Pair ca: clearAreas){
+                    if (sum > 1) { // se na area estiver mais que 1 trotineta, esta área é considerada cheia, sendo uma origem de recompensa.
+                        for (Pair ca : clearAreas) {
                             rewards.add(new Recompensa(central, ca));
                             rewards.add(new Recompensa(sur, ca)); //
                         }
@@ -388,32 +375,32 @@ public class Mapa {
             }
             return rewards;
         } finally {
-            this.lock.readLock().unlock();
+            unlockAllLocais();
         }
     }
 
-    /**
+    /** FIXME ARRANJADOS OS LOCKS
      * Função que calcula as recompensas em vigor que têm origem num raio de 2 unidades de (x,y).
      * O critério de recompensa atual é: o destino não tem nenhuma trotinete num raio de 2 unidades, e a origem tem que ter uma trotineta e no seu raio de 2 unidades tbm existir, pelo menos, uma outra trotineta.
      */
     public Set<Recompensa> getRewardsWithOrigin(int x, int y){
         Set<Recompensa> rewards = new HashSet<Recompensa>();
-        this.lock.readLock().lock();
-        try{
-            // Locais destino de recompensas.
+
+        lockAllLocais();
+        try {// Locais destino de recompensas.
             List<Pair> clearAreas = this.getClearAreas();
 
             // Obtencao de locais de origem para recompensas.
-            List<Pair> trotinetas = this.trotinetesArround(x,y);
-            for (int i = 0; i < trotinetas.size(); i++){
+            List<Pair> trotinetas = this.trotinetesArround(x, y);
+            for (int i = 0; i < trotinetas.size(); i++) {
                 Pair central = trotinetas.get(i);
                 List<Pair> surronding = this.getSurroundings(central.getX(), central.getY(), 2);
                 int sum = 0;
-                for (Pair sur: surronding){
+                for (Pair sur : surronding) {
                     Localizacao l = getLocalizacao(sur.getX(), sur.getY());
                     sum += this.getTrotinetasIn(sur.getX(), sur.getY());
-                    if (sum > 1){ // se na area estiver mais que 1 trotineta, esta área é considerada cheia, sendo uma origem de recompensa.
-                        for (Pair ca: clearAreas){
+                    if (sum > 1) { // se na area estiver mais que 1 trotineta, esta área é considerada cheia, sendo uma origem de recompensa.
+                        for (Pair ca : clearAreas) {
                             rewards.add(new Recompensa(central, ca));
                             rewards.add(new Recompensa(sur, ca)); //
                         }
@@ -422,10 +409,10 @@ public class Mapa {
                     }
                 }
             }
+            return rewards;
         } finally {
-            this.lock.readLock().unlock();
+            unlockAllLocais();
         }
-        return rewards;
     }
 
 

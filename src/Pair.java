@@ -1,3 +1,4 @@
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -48,8 +49,13 @@ public class Pair implements Comparable<Pair>{
 
     public static String toStringPairs(List<Pair> pairs){
         StringBuilder ret = new StringBuilder();
-        for(Pair p: pairs){
-            ret.append(p).append("\n");
+        //for(Pair p: pairs){
+        for(int i = 0; i < pairs.size(); i++){
+            Pair p = pairs.get(i);
+            int occurrences = Collections.frequency(pairs, p);
+            ret.append(occurrences).append(": ").append(p).append("\n");
+            //ret.append(occurrences + ": " + p + "\n");
+            i = pairs.lastIndexOf(p);
         }
         return ret.toString();
     }

@@ -1,84 +1,84 @@
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class Localizacao {
-    private final int x;
-    private final int y;
-    private ReentrantLock lock;
-    private int ntrotinetes;
-    private Condition cond;
+    public final int x;
+    public final int y;
+    public ReentrantReadWriteLock lock;
+    public int ntrotinetes;
+    public Condition cond;
 
     public Localizacao(int x, int y) {
         this.x = x;
         this.y = y;
-        this.lock = new ReentrantLock();
+        this.lock = new ReentrantReadWriteLock();
         this.ntrotinetes = 0;
-        this.cond = lock.newCondition();
+        this.cond = lock.writeLock().newCondition();
     }
 
     public Localizacao(int x, int y, int ntrotinetes) {
         this.x = x;
         this.y = y;
-        this.lock = new ReentrantLock();
+        this.lock = new ReentrantReadWriteLock();
         this.ntrotinetes = ntrotinetes;
-        this.cond = lock.newCondition();
+        this.cond = lock.writeLock().newCondition();
     }
 
     public void retirar(){
-        lock.lock();
+        lock.writeLock().lock();
         try {
             if (this.ntrotinetes > 0){
                 this.ntrotinetes--;
             }
-            if (this.ntrotinetes == 0) this.cond.signalAll();
         }finally {
-            lock.unlock();
+            lock.writeLock().unlock();
         }
     }
 
     public void somar(){
-        lock.lock();
+        lock.writeLock().lock();
         try {
             this.ntrotinetes++;
         }finally {
-            lock.unlock();
+            lock.writeLock().unlock();
         }
     }
 
     public int nPessoas(){
-        this.lock.lock();
+        lock.readLock().lock();
         try {
             return this.ntrotinetes;
         }
         finally {
-            this.lock.unlock();
+            lock.readLock().unlock();
         }
     }
 
     public void lockLocal (){
-        lock.lock();
+        lock.readLock().lock();
     }
 
     public void unlockLocal (){
-        lock.unlock();
+        lock.readLock().unlock();
     }
 
     public int getNtrotinetes() {
-        this.lock.lock();
+        this.lock.readLock().lock();
         try {
             return ntrotinetes;
         }
         finally {
-            this.lock.unlock();
+            this.lock.readLock().unlock();
         }
     }
 
     public void setNtrotinetes(int ntrotinetes) {
-        this.lock.lock();
+        this.lock.writeLock().lock();
         try{
             this.ntrotinetes = ntrotinetes;
         }finally {
-            this.lock.unlock();
+            this.lock.writeLock().unlock();
         }
 
     }
@@ -96,24 +96,11 @@ public class Localizacao {
     }
 
     public int getX() {
-        try{
-            //lock.lock();
-            return x;
-        }
-        finally {
-            //lock.unlock();
-        }
+        return x;
     }
 
-
     public int getY() {
-        try{
-            //lock.lock();
-            return y;
-        }
-        finally {
-            //lock.unlock();
-        }
+        return y;
     }
 
 
@@ -127,11 +114,10 @@ public class Localizacao {
 
     @Override
     public String toString() {
-        //return String.format("%d", ntrotinetes);
         return "Localizacao{" +
                 "x=" + x +
                 ", y=" + y +
                 ", ntrotinetes=" + ntrotinetes +
-                '}';
+                "}";
     }
 }
