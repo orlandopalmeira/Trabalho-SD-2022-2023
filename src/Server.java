@@ -105,6 +105,11 @@ public class Server {
                             }
                             // todo to be determined.
                         }
+                        //
+                        else if (frame.tag == 5){
+
+                            // todo to be determined.
+                        }
 
                     }
                 } catch (IOException exc){

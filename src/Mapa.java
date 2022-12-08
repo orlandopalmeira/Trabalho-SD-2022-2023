@@ -102,6 +102,13 @@ public class Mapa {
         return x < this.N && y < this.N && x >= 0 && y >= 0;
     }
 
+    /** Verifica se a posição está dentro dos limites do mapa estabelecido.
+     */
+    public boolean validPos (Pair p){
+        int x = p.getX(), y = p.getY();
+        return x < this.N && y < this.N && x >= 0 && y >= 0;
+    }
+
     /**
      * Transforma um Pair na respetiva Localizacao.
      * @param p Objeto da classe Pair.
