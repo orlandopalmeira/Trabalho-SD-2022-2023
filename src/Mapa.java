@@ -302,7 +302,10 @@ public class Mapa {
      */
     public void signalLocations (Collection<Pair> pares){
         for (Pair p: pares){
-            getLocalizacao(p).cond.signalAll();
+            Localizacao l = getLocalizacao(p);
+            l.lock.writeLock().lock();
+            l.cond.signalAll();
+            l.lock.writeLock().unlock();
         }
     }
 
@@ -411,7 +414,8 @@ public class Mapa {
         Set<Recompensa> rewards = new HashSet<Recompensa>();
 
         lockAllLocais();
-        try {// Locais destino de recompensas.
+        try {
+            // Locais destino de recompensas.
             List<Pair> clearAreas = this.getClearAreas();
 
             // Obtencao de locais de origem para recompensas.

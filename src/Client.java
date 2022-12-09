@@ -88,12 +88,12 @@ public class Client {
         }
 
         Thread receivingNotifications = new Thread(()->{
-            String response;
+            String response = null;
             while(true){
                 try {
-                    response = new String(m.receive(30));
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
+                    response = new String(m.receive(30)); // tag respetiva a notificacoes.
+                } catch (Exception ignored) {
+                    System.exit(0);
                 }
                 stdinl.lock();
                 try {
@@ -125,7 +125,6 @@ public class Client {
                     //m.send(99, new byte[0]);
                     exit = true;
                     break;
-
 
                 case "1": // "1) Trotinetes livres
                     while (true) {
@@ -169,23 +168,47 @@ public class Client {
                         System.out.println("Input inválido.");
                     }
                     m.send(4, location.getBytes());
-                    response = new String(m.receive(3));
+                    response = new String(m.receive(4));
                     // tratar da resposta recebida
+                    if ("0".equals(response)){
+                        System.out.println("Não foi possível a reserva.");
+                    }
+                    else {
+                        System.out.println("Reservado.");
+                    }
 
                     break;
 
                 case "4": // 4) Estacionar trotinete
-
+                    while (true) {
+                        System.out.print("Insira a localização no formato \"x y\": ");
+                        location = stdin.readLine();
+                        if (validLocation(location)) break;
+                        System.out.println("Input inválido.");
+                    }
+                    m.send(5, location.getBytes());
+                    //response = new String(m.receive(5));
                     break;
 
                 case "5": // 5) Ativar notificação
-
+                    while (true) {
+                        System.out.print("Insira a localização no formato \"x y\": ");
+                        location = stdin.readLine();
+                        if (validLocation(location)) break;
+                        System.out.println("Input inválido.");
+                    }
+                    m.send(6, location.getBytes());
+                    System.out.println("Pedido enviado.");
                     break;
             }
-
-            System.out.println("Prime Enter para continuar.");
-            stdin.readLine();
+            if (!option.equals("0")){
+                System.out.println("Prime Enter para continuar.");
+                stdin.readLine();
+            }
             }
 
+        receivingNotifications.interrupt();
+        receivingNotifications.join();
+        s.close();
     }
 }

@@ -1,9 +1,7 @@
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -24,9 +22,11 @@ public class Server {
             while(true) {
                 HashSet<Recompensa> newRecompensas = mapa.getRewards();
                 HashSet<Pair> toSignal = new HashSet<>();
+                HashSet<Recompensa> difRec = new HashSet<>(); // FIXME FOR DEBUG. ELIMINATE LATER.
                 for (Recompensa nr : newRecompensas) {
                     if (!recompensas.contains(nr)){
-                        toSignal.addAll(mapa.getSurroundings(nr.origem, 2)); // adiciona as novas posicoes de origem que têm novas recompensas
+                        toSignal.addAll(mapa.getSurroundings(nr.origem, 2)); // adiciona as novas posicoes vizinhas de origem que têm novas recompensas.
+                        difRec.add(nr); // FIXME FOR DEBUG. ELIMINATE LATER.
                     }
                 }
                 for (Pair p: toSignal){
@@ -131,36 +131,71 @@ public class Server {
                             if(lista.size() > 0){
                                 Pair closest = lista.get(0);
                                 mapa.retiraTrotineta(closest);
+                                rewardslock.writeLock().lock();
                                 rewardsCond.signalAll(); // sinaliza uma alteração no mapa para o gerador de recompensas.
+                                rewardslock.writeLock().unlock();
                                 // Enviar codigo de sucesso e localizacao
                                 c.send(frame.tag, closest.toString().getBytes());
                             }
                             else{
                                 // Enviar codigo de insucesso.
-                                c.send(frame.tag, "Erro".getBytes());
+                                c.send(frame.tag, "0".getBytes());
                             }
                         }
                         // Estacionar trotinete
                         else if (frame.tag == 5){
-                            String data = new String(frame.data);
-
                             // todo to be determined.
+                            String data = new String(frame.data);
+                            String [] tokens = data.split(" ");
+                            int x = Integer.parseInt(tokens[0]);
+                            int y = Integer.parseInt(tokens[1]);
+                            System.out.printf("Estacionamento de trotinete em (%d,%d).%n", x,y); // LOG
+                            mapa.addTrotineta(x,y);
+                            rewardslock.writeLock().lock();
+                            rewardsCond.signalAll(); // sinaliza uma alteração no mapa para o gerador de recompensas.
+                            rewardslock.writeLock().unlock();
+                            //c.send(frame.tag, "1".getBytes());
                         }
                         // Pedido de notificacao
                         else if (frame.tag == 6){
+                            // todo to be determined.
                             String data = new String(frame.data);
                             String [] tokens = data.split(" ");
                             int x = Integer.parseInt(tokens[0]);
                             int y = Integer.parseInt(tokens[1]);
                             System.out.printf("Pedido de notificação de recompensas na área de (%d,%d).%n", x,y); // LOG
                             Pair watchedLocal = new Pair(x,y);
+                            Thread sendNotifications = new Thread(() -> {
+                                try {
+                                    while(true){
+                                        boolean flag = true;
+                                        Collection<Recompensa> newl = null, ant = mapa.getRewardsWithOrigin(watchedLocal.getX(),watchedLocal.getY());
+                                        while(flag){
+                                            Localizacao l = mapa.getLocalizacao(watchedLocal);
+                                            l.lock.writeLock().lock();
+                                            try{
+                                                l.cond.await();
+                                            } finally {
+                                                l.lock.writeLock().unlock();
+                                            }
+                                            newl = mapa.getRewardsWithOrigin(watchedLocal.getX(),watchedLocal.getY());
+                                            flag = ant.containsAll(newl);
+                                        }
+                                        newl.removeAll(ant);
+                                        c.send(30, ("Novas recompensas:\n" + Recompensa.toStringRecompensas(newl)).getBytes());
+                                    }
+                                } catch (Exception e) {
+                                    throw new RuntimeException(e);
+                                }
+                            });
+                            sendNotifications.start();
 
-                            // todo to be determined.
                         }
+                        System.out.println(mapa);
 
                     }
                 } catch (IOException exc){
-                    System.out.println(exc);
+                    //System.out.println(exc); // FIXME remove
                     //throw exc;
                 }
             };

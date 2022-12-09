@@ -11,7 +11,8 @@ public class Connection implements AutoCloseable {
     private final Lock rl = new ReentrantLock();
     private final Lock wl = new ReentrantLock();
 
-    public Connection(Socket socket) throws IOException {
+    public Connection(Socket sock) throws IOException {
+        this.socket = sock;
         this.dis = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
         this.dos = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
     }
