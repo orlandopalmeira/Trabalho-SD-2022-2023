@@ -3,9 +3,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class Recompensa {
-    private Pair origem;
-    private Pair destino;
-    private int reward;
+    public Pair origem;
+    public Pair destino;
+    public int reward;
 
     public Recompensa (Pair origem, Pair destino){
         this.origem = origem;

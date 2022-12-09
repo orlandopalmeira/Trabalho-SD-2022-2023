@@ -1,9 +1,11 @@
-import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class Server {
     public static void main(String[] args) throws IOException{
@@ -12,6 +14,38 @@ public class Server {
         final Accounts accounts = new Accounts();
         final Mapa mapa = new Mapa(10);
         System.out.println(mapa); // DEBUG
+
+        final ReentrantReadWriteLock rewardslock = new ReentrantReadWriteLock();
+        final Condition rewardsCond = rewardslock.writeLock().newCondition();
+        final HashSet<Recompensa> recompensas = mapa.getRewards();
+
+        // Geração de recompensas em background.
+        Thread evalRewards = new Thread(() -> {
+            while(true) {
+                HashSet<Recompensa> newRecompensas = mapa.getRewards();
+                HashSet<Pair> toSignal = new HashSet<>();
+                for (Recompensa nr : newRecompensas) {
+                    if (!recompensas.contains(nr)){
+                        toSignal.addAll(mapa.getSurroundings(nr.origem, 2)); // adiciona as novas posicoes de origem que têm novas recompensas
+                    }
+                }
+                for (Pair p: toSignal){
+                    mapa.signalLocations(toSignal); // sinaliza as novas posicoes originais de recompensa.
+                }
+                rewardslock.writeLock().lock();
+                try {
+                    recompensas.clear();
+                    recompensas.addAll(newRecompensas);
+                    rewardsCond.await(); // fica à espera que haja uma mudanca no mapa (reservamento ou estacionamento de trotinete).
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                } finally {
+                    rewardslock.writeLock().unlock();
+                }
+            }
+        });
+        evalRewards.start();
+
 
         while(true) {
             Socket s = ss.accept();
@@ -87,26 +121,39 @@ public class Server {
                         }
                         // Reservar trotinete
                         else if (frame.tag == 4){
+                            // todo to be determined.
                             String data = new String(frame.data);
                             String [] tokens = data.split(" ");
                             int x = Integer.parseInt(tokens[0]);
                             int y = Integer.parseInt(tokens[1]);
                             System.out.printf("Pedido de reserva de trotinete em (%d,%d).%n", x,y); // LOG
-                            List<Pair> l = mapa.trotinetesArround(x,y);
-                            if(l.size() > 0){
-                                Pair closest = l.get(0);
+                            List<Pair> lista = mapa.trotinetesArround(x,y);
+                            if(lista.size() > 0){
+                                Pair closest = lista.get(0);
+                                mapa.retiraTrotineta(closest);
+                                rewardsCond.signalAll(); // sinaliza uma alteração no mapa para o gerador de recompensas.
                                 // Enviar codigo de sucesso e localizacao
                                 c.send(frame.tag, closest.toString().getBytes());
                             }
                             else{
                                 // Enviar codigo de insucesso.
-                                c.send(frame.tag, "".getBytes());
-
+                                c.send(frame.tag, "Erro".getBytes());
                             }
+                        }
+                        // Estacionar trotinete
+                        else if (frame.tag == 5){
+                            String data = new String(frame.data);
+
                             // todo to be determined.
                         }
-                        //
-                        else if (frame.tag == 5){
+                        // Pedido de notificacao
+                        else if (frame.tag == 6){
+                            String data = new String(frame.data);
+                            String [] tokens = data.split(" ");
+                            int x = Integer.parseInt(tokens[0]);
+                            int y = Integer.parseInt(tokens[1]);
+                            System.out.printf("Pedido de notificação de recompensas na área de (%d,%d).%n", x,y); // LOG
+                            Pair watchedLocal = new Pair(x,y);
 
                             // todo to be determined.
                         }

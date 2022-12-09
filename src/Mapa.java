@@ -216,12 +216,26 @@ public class Mapa {
     }
 
     /**
+     * Adiciona uma trotinete ao local indicado.
+     */
+    public void addTrotineta(Pair p){
+        addTrotineta(p.getX(), p.getY());
+    }
+
+    /**
      * Retira uma trotinete ao local indicado.
      */
     public void retiraTrotineta(int x, int y){
         // TODO lock local de variaveis do mapa, talvez.
         num_trotinetes--;
         this.mapa[x][y].retirar();
+    }
+
+    /**
+     * Retira uma trotinete ao local indicado.
+     */
+    public void retiraTrotineta(Pair p){
+        retiraTrotineta(p.getX(), p.getY());
     }
 
     /** FIXME ARRANJADOS OS LOCKS
@@ -244,7 +258,7 @@ public class Mapa {
      * Não se faz nenhum lock nesta função, pois é puramente matematica.
      * DETALHE: A coordenada central que vem no argumento, é também retornada, sendo ela própria considerada como vizinha dela mesmo.
      */
-    private List<Pair> getSurroundings(Pair p, int raio){
+    public List<Pair> getSurroundings(Pair p, int raio){
         return this.getSurroundings(p.getX(), p.getY(), raio);
     }
 
@@ -253,7 +267,7 @@ public class Mapa {
      * Não se faz nenhum lock nesta função, pois é puramente matematica.
      * DETALHE: A coordenada central que vem no argumento, é também retornada, sendo ela própria considerada como vizinha dela mesmo.
      */
-    private List<Pair> getSurroundings(int x, int y, int raio){
+    public List<Pair> getSurroundings(int x, int y, int raio){
         List<Pair> surroundings = new ArrayList<Pair>();
         if (!this.validPos(x, y)) return surroundings;
         Pair l = new Pair(x,y);
@@ -280,6 +294,16 @@ public class Mapa {
             }
         }
         return surroundings;
+    }
+
+    /**
+     * Sinaliza todas as localizaçoes vizinhas.
+     * @param pares lista de objetos Pair.
+     */
+    public void signalLocations (Collection<Pair> pares){
+        for (Pair p: pares){
+            getLocalizacao(p).cond.signalAll();
+        }
     }
 
     /** FIXME ARRANJADOS OS LOCKS
@@ -343,10 +367,10 @@ public class Mapa {
 
     /** FIXME ARRANJADOS OS LOCKS
      * Função que retorna todas as recompensas em vigor naquele determinado mapa.
-     * O critério de recompensa atual é: o destino não tem nenhuma trotinete num raio de 2 unidades, e a origem tem que ter uma trotineta e no seu raio de 2 unidades tbm existir, pelo menos, uma outra trotineta.
+     * O critério de recompensa atual é: o destino não tem nenhuma trotinete num raio de 2 unidades, e a origem tem que ter uma trotineta e no seu raio de 2 unidades também existir, pelo menos, uma outra trotineta.
      */
-    public Set<Recompensa> getRewards(){
-        Set<Recompensa> rewards = new HashSet<Recompensa>();
+    public HashSet<Recompensa> getRewards(){
+        HashSet<Recompensa> rewards = new HashSet<Recompensa>();
 
         lockAllLocais();
         try {

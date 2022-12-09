@@ -1,8 +1,7 @@
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
-import java.util.HashSet;
+import java.util.concurrent.locks.ReentrantLock;
 
 
 public class Client {
@@ -31,9 +30,10 @@ public class Client {
         Demultiplexer m = new Demultiplexer(new Connection(s));
         //m.start();
 
+        ReentrantLock stdinl = new ReentrantLock(); // lock para escrita no standard input para notificações não se atropelarem ao resto das funcionalidades.
         BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
 
-        HashSet<Thread> alarms = new HashSet<>(); // threads que irão estar à escuta de notificações.
+        //HashSet<Thread> alarms = new HashSet<>(); // threads que irão estar à escuta de notificações.
 
         String username = null;
         username = "re"; //  TODO remove in final version.
@@ -87,6 +87,23 @@ public class Client {
             }
         }
 
+        Thread receivingNotifications = new Thread(()->{
+            String response;
+            while(true){
+                try {
+                    response = new String(m.receive(30));
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+                stdinl.lock();
+                try {
+                    System.out.println("Surgiu a seguinte recompensa " + response + ".");
+                } finally {
+                    stdinl.unlock();
+                }
+            }
+        });
+        receivingNotifications.start();
         // COMEÇAR MENU DE INTERAÇOES COM O MAPA.
         boolean exit = false;
         while (!exit) {
