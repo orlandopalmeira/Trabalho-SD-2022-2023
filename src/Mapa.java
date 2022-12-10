@@ -207,32 +207,45 @@ public class Mapa {
 
     /**
      * Adiciona uma trotinete ao local indicado.
+     * Retorna true se a operação correu com sucesso, falso caso a posição indicada não esteja no mapa.
      */
-    public void addTrotineta(int x, int y){
-        num_trotinetes++;
-        this.mapa[x][y].somar();
+    public boolean addTrotineta(int x, int y){
+        if (validPos(x,y)){
+            num_trotinetes++;
+            this.mapa[x][y].somar();
+            return true;
+        }
+        return false;
+
     }
 
     /**
      * Adiciona uma trotinete ao local indicado.
+     * Retorna true se a operação correu com sucesso, falso caso a posição indicada não esteja no mapa.
      */
-    public void addTrotineta(Pair p){
-        addTrotineta(p.getX(), p.getY());
+    public boolean addTrotineta(Pair p){
+        return addTrotineta(p.getX(), p.getY());
     }
 
     /**
      * Retira uma trotinete ao local indicado.
+     * Retorna true se a operação correu com sucesso, falso caso a posição indicada não esteja no mapa.
      */
-    public void retiraTrotineta(int x, int y){
-        //num_trotinetes--;
-        this.mapa[x][y].retirar();
+    public boolean retiraTrotineta(int x, int y){
+        if (validPos(x,y)){
+            num_trotinetes--;
+            this.mapa[x][y].retirar();
+            return true;
+        }
+        return false;
     }
 
     /**
      * Retira uma trotinete ao local indicado.
+     * Retorna true se a operação correu com sucesso, falso caso a posição indicada não esteja no mapa.
      */
-    public void retiraTrotineta(Pair p){
-        retiraTrotineta(p.getX(), p.getY());
+    public boolean retiraTrotineta(Pair p){
+        return retiraTrotineta(p.getX(), p.getY());
     }
 
     /**

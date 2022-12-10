@@ -154,11 +154,16 @@ public class Server {
                             int x = Integer.parseInt(tokens[0]);
                             int y = Integer.parseInt(tokens[1]);
                             System.out.printf("Estacionamento de trotinete em (%d,%d).%n", x,y); // LOG
-                            mapa.addTrotineta(x,y);
-                            rewardslock.writeLock().lock();
-                            rewardsCond.signalAll(); // sinaliza uma alteração no mapa para o gerador de recompensas.
-                            rewardslock.writeLock().unlock();
-                            //c.send(frame.tag, "1".getBytes());
+                            boolean flag = mapa.addTrotineta(x,y);
+                            if(flag){
+                                rewardslock.writeLock().lock();
+                                rewardsCond.signalAll(); // sinaliza uma alteração no mapa para o gerador de recompensas.
+                                rewardslock.writeLock().unlock();
+                                c.send(frame.tag, "1".getBytes());
+                            }
+                            else{
+                                c.send(frame.tag, "0".getBytes());
+                            }
                         }
                         // Pedido de notificacao
                         else if (frame.tag == 6){

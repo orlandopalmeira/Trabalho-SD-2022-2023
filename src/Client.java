@@ -189,7 +189,13 @@ public class Client {
                         System.out.println("Input inválido.");
                     }
                     m.send(5, location.getBytes());
-                    //response = new String(m.receive(5));
+                    response = new String(m.receive(5));
+                    if (response.equals("0")){
+                        System.out.println("Posição inválida, operação recusada pelo servidor.");
+                    }
+                    else{
+                        System.out.println("Pedido enviado com sucesso.");
+                    }
                     break;
 
                 case "5": // 5) Ativar notificação -> tag(6)
