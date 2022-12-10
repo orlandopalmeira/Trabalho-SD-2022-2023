@@ -24,7 +24,7 @@ public class Mapa {
             }
         }
         this.num_trotinetes = 8;
-        // ESTOU A DEFINIR UMA ESTRUTURA MAIS EXATA, INVES DE INICIAR ALEATORIAMENTE AS TROTINETAS POR MOTIVOS DE DEBUG /////////////////
+        // FIXME ESTOU A DEFINIR UMA ESTRUTURA MAIS EXATA, INVES DE INICIAR ALEATORIAMENTE AS TROTINETAS POR MOTIVOS DE DEBUG
         this.addTrotineta(2,1);
         this.addTrotineta(2,4);
         this.addTrotineta(4,1);
@@ -209,10 +209,8 @@ public class Mapa {
      * Adiciona uma trotinete ao local indicado.
      */
     public void addTrotineta(int x, int y){
-        // TODO lock local de variaveis do mapa, talvez.
         num_trotinetes++;
         this.mapa[x][y].somar();
-        //this.mapa[x][y].getCond().signalAll(); //Não está corretamente implementado.
     }
 
     /**
@@ -226,8 +224,7 @@ public class Mapa {
      * Retira uma trotinete ao local indicado.
      */
     public void retiraTrotineta(int x, int y){
-        // TODO lock local de variaveis do mapa, talvez.
-        num_trotinetes--;
+        //num_trotinetes--;
         this.mapa[x][y].retirar();
     }
 
@@ -238,7 +235,7 @@ public class Mapa {
         retiraTrotineta(p.getX(), p.getY());
     }
 
-    /** FIXME ARRANJADOS OS LOCKS
+    /**
      * Retorna o número de trotinetes num determinado local.
      * Não faço locks gerais do mapa nesta função uma vez que é auxiliar a funcoes que o fazem.
      */
@@ -309,7 +306,7 @@ public class Mapa {
         }
     }
 
-    /** FIXME ARRANJADOS OS LOCKS
+    /**
      * Indica as posições em que estão trotinetes num raio de 2 relativamente a uma determinada posição. REQUISITO 1
      * Quando ha mais que uma tronineta numa coordenada é repetido o Pair.
      */
@@ -328,7 +325,7 @@ public class Mapa {
         return trotinetes_livres;
     }
 
-    /** FIXME ARRANJADOS OS LOCKS
+    /**
      * Retorna uma List<Localizacao> onde indica a posição de trotinetes.
      * Funcao auxiliar.
      */
@@ -346,7 +343,7 @@ public class Mapa {
         return trotinetes;
     }
 
-    /** FIXME ARRANJADOS OS LOCKS
+    /**
      * Retorna uma List<Localizacao> onde indica a inexistência de trotinetes num raio de 2.
      * Funcao auxiliar.
      */
@@ -368,7 +365,7 @@ public class Mapa {
         return clearLocals;
     }
 
-    /** FIXME ARRANJADOS OS LOCKS
+    /**
      * Função que retorna todas as recompensas em vigor naquele determinado mapa.
      * O critério de recompensa atual é: o destino não tem nenhuma trotinete num raio de 2 unidades, e a origem tem que ter uma trotineta e no seu raio de 2 unidades também existir, pelo menos, uma outra trotineta.
      */
@@ -406,7 +403,7 @@ public class Mapa {
         }
     }
 
-    /** FIXME ARRANJADOS OS LOCKS
+    /**
      * Função que calcula as recompensas em vigor que têm origem num raio de 2 unidades de (x,y).
      * O critério de recompensa atual é: o destino não tem nenhuma trotinete num raio de 2 unidades, e a origem tem que ter uma trotineta e no seu raio de 2 unidades tbm existir, pelo menos, uma outra trotineta.
      */
@@ -445,7 +442,6 @@ public class Mapa {
 
 
     @Override
-    // TODO talvez implementar gestao de concorrencia no toString de mapa.
     public String toString() {
         StringBuilder res = new StringBuilder();
         res.append(" :");
@@ -454,7 +450,7 @@ public class Mapa {
         }
         res.append("\n");
         for (int i=0; i<this.N; i++){
-            res.append(i+":");
+            res.append(i).append(":");
             for (int j = 0; j < this.N; j++) {
                 res.append(mapa[i][j].getNtrotinetes());
             }

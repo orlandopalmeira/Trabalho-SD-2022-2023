@@ -30,13 +30,13 @@ public class Client {
         Demultiplexer m = new Demultiplexer(new Connection(s));
         //m.start();
 
-        ReentrantLock stdinl = new ReentrantLock(); // lock para escrita no standard input para notificações não se atropelarem ao resto das funcionalidades.
         BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
 
-        //HashSet<Thread> alarms = new HashSet<>(); // threads que irão estar à escuta de notificações.
+        // TODO não implementado em todos os Prints. (preciso assegurar momentos em que notificaçoes podem ser apresentados).
+        ReentrantLock printLock = new ReentrantLock(); // lock para prints de notificações não atropelarem o resto das funcionalidades.
 
         String username = null;
-        username = "re"; //  TODO remove in final version.
+        username = "re"; //  FIXME remove in final version.
         while (username == null) {
             System.out.print("***TROTINETAS***\n"
                     + "\n"
@@ -54,7 +54,7 @@ public class Client {
                 System.out.print("Introduza a sua palavra-passe: ");
                 String password = stdin.readLine();
                 String data = String.format("%s %s", uName, password);
-                // User registration attempt = 0
+                // User registration attempt. tag = (0)
                 m.send(0, data.getBytes());
                 String response = new String(m.receive(0));
                 // Recebe 1 como sinal de sucesso.
@@ -75,7 +75,7 @@ public class Client {
                 System.out.print("Introduza a sua palavra-passe: ");
                 String password = stdin.readLine();
                 String data = String.format("%s %s", uName, password);
-                // User log-in attempt = 1
+                // User log-in attempt.  tag = (1)
                 m.send(1, data.getBytes());
                 String response = new String(m.receive(1));
                 if(!response.startsWith("Erro")) {
@@ -87,23 +87,25 @@ public class Client {
             }
         }
 
+        // Inicio de thread que responde fica à escuta de eventuais notificações.
         Thread receivingNotifications = new Thread(()->{
             String response = null;
             while(true){
                 try {
-                    response = new String(m.receive(30)); // tag respetiva a notificacoes.
+                    response = new String(m.receive(30)); // tag(30) usada para notificações.
                 } catch (Exception ignored) {
                     System.exit(0);
                 }
-                stdinl.lock();
+                printLock.lock();
                 try {
-                    System.out.println("Surgiu a seguinte recompensa " + response + ".");
+                    System.out.println("\n(Notificação) Surgiu a seguinte recompensa " + response + ".");
                 } finally {
-                    stdinl.unlock();
+                    printLock.unlock();
                 }
             }
         });
         receivingNotifications.start();
+
         // COMEÇAR MENU DE INTERAÇOES COM O MAPA.
         boolean exit = false;
         while (!exit) {
@@ -126,7 +128,7 @@ public class Client {
                     exit = true;
                     break;
 
-                case "1": // "1) Trotinetes livres
+                case "1": // "1) Trotinetes livres -> tag(2)
                     while (true) {
                         System.out.print("Insira a localização no formato \"x y\": ");
                         location = stdin.readLine();
@@ -143,7 +145,7 @@ public class Client {
                     }
                     break;
 
-                case "2": // 2) Recompensas
+                case "2": // 2) Recompensas -> tag(3)
                     while (true) {
                         System.out.print("Insira a localização no formato \"x y\": ");
                         location = stdin.readLine();
@@ -160,7 +162,7 @@ public class Client {
                     }
                     break;
 
-                case "3": // 3) Reservar trotinete
+                case "3": // 3) Reservar trotinete -> tag(4)
                     while (true) {
                         System.out.print("Insira a localização no formato \"x y\": ");
                         location = stdin.readLine();
@@ -179,7 +181,7 @@ public class Client {
 
                     break;
 
-                case "4": // 4) Estacionar trotinete
+                case "4": // 4) Estacionar trotinete -> tag(5)
                     while (true) {
                         System.out.print("Insira a localização no formato \"x y\": ");
                         location = stdin.readLine();
@@ -190,7 +192,7 @@ public class Client {
                     //response = new String(m.receive(5));
                     break;
 
-                case "5": // 5) Ativar notificação
+                case "5": // 5) Ativar notificação -> tag(6)
                     while (true) {
                         System.out.print("Insira a localização no formato \"x y\": ");
                         location = stdin.readLine();
@@ -198,7 +200,13 @@ public class Client {
                         System.out.println("Input inválido.");
                     }
                     m.send(6, location.getBytes());
-                    System.out.println("Pedido enviado.");
+                    response = new String(m.receive(6));
+                    if (response.equals("0")){
+                        System.out.println("Notificações sobre esta localização já estavam ativadas.");
+                    }
+                    else{
+                        System.out.println("Pedido enviado com sucesso.");
+                    }
                     break;
             }
             if (!option.equals("0")){

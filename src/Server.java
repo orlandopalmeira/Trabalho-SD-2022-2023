@@ -11,8 +11,9 @@ public class Server {
 
         final Accounts accounts = new Accounts();
         final Mapa mapa = new Mapa(10);
-        System.out.println(mapa); // DEBUG
+        System.out.println(mapa); // Printa o estado inicial do mapa.
 
+        // Estruturas auxiliares de suporte ao mecanismo de geração de recompensas.
         final ReentrantReadWriteLock rewardslock = new ReentrantReadWriteLock();
         final Condition rewardsCond = rewardslock.writeLock().newCondition();
         final HashSet<Recompensa> recompensas = mapa.getRewards();
@@ -54,7 +55,10 @@ public class Server {
             /* The runnable that executes the processing of a client connection. */
             Runnable processing = () -> {
                 try(c){
+
+                    HashMap<Pair, Thread> notificationThreadsMap = new HashMap<>(); // para armazenar as threads que tratam das notificações.
                     boolean isLoggedIn = false;
+
                     while(true){
                         Frame frame = c.receive();
                         /*
@@ -121,14 +125,14 @@ public class Server {
                         }
                         // Reservar trotinete
                         else if (frame.tag == 4){
-                            // todo to be determined.
+                            // todo Falta lógica de códigos de reserva.
                             String data = new String(frame.data);
                             String [] tokens = data.split(" ");
                             int x = Integer.parseInt(tokens[0]);
                             int y = Integer.parseInt(tokens[1]);
                             System.out.printf("Pedido de reserva de trotinete em (%d,%d).%n", x,y); // LOG
                             List<Pair> lista = mapa.trotinetesArround(x,y);
-                            if(lista.size() > 0){
+                            if(lista.size() > 0){ // se houver trotinetes disponiveis.
                                 Pair closest = lista.get(0);
                                 mapa.retiraTrotineta(closest);
                                 rewardslock.writeLock().lock();
@@ -144,7 +148,7 @@ public class Server {
                         }
                         // Estacionar trotinete
                         else if (frame.tag == 5){
-                            // todo to be determined.
+                            // todo Falta lógica de códigos de reserva.
                             String data = new String(frame.data);
                             String [] tokens = data.split(" ");
                             int x = Integer.parseInt(tokens[0]);
@@ -158,13 +162,16 @@ public class Server {
                         }
                         // Pedido de notificacao
                         else if (frame.tag == 6){
-                            // todo to be determined.
                             String data = new String(frame.data);
                             String [] tokens = data.split(" ");
                             int x = Integer.parseInt(tokens[0]);
                             int y = Integer.parseInt(tokens[1]);
                             System.out.printf("Pedido de notificação de recompensas na área de (%d,%d).%n", x,y); // LOG
                             Pair watchedLocal = new Pair(x,y);
+                            if (notificationThreadsMap.containsKey(watchedLocal)){
+                                c.send(frame.tag, "0".getBytes());
+                                continue;
+                            }
                             Thread sendNotifications = new Thread(() -> {
                                 try {
                                     while(true){
@@ -182,13 +189,15 @@ public class Server {
                                             flag = ant.containsAll(newl);
                                         }
                                         newl.removeAll(ant);
-                                        c.send(30, ("Novas recompensas:\n" + Recompensa.toStringRecompensas(newl)).getBytes());
+                                        c.send(30, (Recompensa.toStringRecompensas(newl)).getBytes());
                                     }
                                 } catch (Exception e) {
                                     throw new RuntimeException(e);
                                 }
                             });
+                            notificationThreadsMap.put(watchedLocal, sendNotifications);
                             sendNotifications.start();
+                            c.send(frame.tag, "1".getBytes());
 
                         }
                         System.out.println(mapa);
