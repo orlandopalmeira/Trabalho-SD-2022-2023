@@ -122,6 +122,7 @@ public class Server {
                             System.out.printf("Probing de recompensas em (%d,%d).%n", x,y); // LOG
                             Set<Recompensa> rs = mapa.getRewardsWithOrigin(x,y);
                             c.send(frame.tag, Recompensa.toStringRecompensas(rs).getBytes());
+                            //c.send(frame.tag, rs.);
                         }
                         // Reservar trotinete
                         else if (frame.tag == 4){

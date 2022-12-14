@@ -1,10 +1,13 @@
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
 /**
  * Esta é uma classe auxiliar que implementa pares.
  */
-public class Pair implements Comparable<Pair>{
+public class Pair implements Comparable<Pair>, Serializavel{
     public int x;
     public int y;
 
@@ -80,5 +83,16 @@ public class Pair implements Comparable<Pair>{
                 this.x + "," +
                 this.y +
                 ")";
+    }
+
+    public void serialize (DataOutputStream out) throws IOException {
+        out.writeInt(this.getX());
+        out.writeInt(this.getY());
+    }
+
+    public Serializavel deserialize (DataInputStream in) throws IOException {
+        int x = in.readInt();
+        int y = in.readInt();
+        return new Pair(x,y);
     }
 }

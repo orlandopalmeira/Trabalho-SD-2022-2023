@@ -1,8 +1,12 @@
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class Recompensa {
+public class Recompensa implements Serializavel {
     public Pair origem;
     public Pair destino;
     public int reward;
@@ -11,6 +15,12 @@ public class Recompensa {
         this.origem = origem;
         this.destino = destino;
         this.reward = this.calculaRecompensa();
+    }
+
+    public Recompensa (Pair origem, Pair destino, int reward){
+        this.origem = origem;
+        this.destino = destino;
+        this.reward = reward;
     }
 
 
@@ -67,4 +77,23 @@ public class Recompensa {
                 rewrd = this.reward;
         return xo.hashCode() + yo.hashCode() + xd.hashCode() + yd.hashCode() + rewrd.hashCode();
     }
+
+    public void serialize (DataOutputStream out) throws IOException {
+        this.origem.serialize(out);
+        this.destino.serialize(out);
+        out.writeInt(this.reward);
+    }
+
+
+    // @TODO
+    public Recompensa deserialize (DataInputStream in) throws IOException {
+        Pair origem = new Pair(0,0);
+        Pair destino = new Pair(0,0);
+        origem = (Pair) origem.deserialize(in);
+        destino = (Pair) destino.deserialize(in);
+        int reward = in.readInt();
+
+        return new Recompensa(origem, destino, reward);
+    }
+
 }
