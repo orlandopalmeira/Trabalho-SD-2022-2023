@@ -440,9 +440,9 @@ public class Mapa {
                     if (sum > 1) { // se na area estiver mais que 1 trotineta, esta área é considerada cheia, sendo uma origem de recompensa.
                         for (Pair ca : clearAreas) {
                             rewards.add(new Recompensa(central, ca));
-                            rewards.add(new Recompensa(sur, ca)); //
+                            //rewards.add(new Recompensa(sur, ca)); //
                         }
-                        trotinetas.remove(sur); // uma vez que já se faz a adiçao das recompensas quando se encontra uma trotineta surronding.
+                        //trotinetas.remove(sur); // uma vez que já se faz a adiçao das recompensas quando se encontra uma trotineta surronding.
                         break;
                     }
                 }
