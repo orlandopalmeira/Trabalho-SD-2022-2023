@@ -323,9 +323,9 @@ public class Mapa {
      * Indica as posições em que estão trotinetes num raio de 2 relativamente a uma determinada posição. REQUISITO 1
      * Quando ha mais que uma tronineta numa coordenada é repetido o Pair.
      */
-    public List<Pair> trotinetesArround(int x, int y){
+    public PairList trotinetesArround(int x, int y){
         int raio = 2;
-        List<Pair> trotinetes_livres = new ArrayList<Pair>();
+        PairList trotinetes_livres = new PairList();
         List<Pair> arround = this.getSurroundings(x, y, raio);
         this.lockTheseLocais(arround); // faz-se readLock das redondezas da coordenada de maneira ordenada.
         for (Pair p: arround){
@@ -420,8 +420,8 @@ public class Mapa {
      * Função que calcula as recompensas em vigor que têm origem num raio de 2 unidades de (x,y).
      * O critério de recompensa atual é: o destino não tem nenhuma trotinete num raio de 2 unidades, e a origem tem que ter uma trotineta e no seu raio de 2 unidades tbm existir, pelo menos, uma outra trotineta.
      */
-    public Set<Recompensa> getRewardsWithOrigin(int x, int y){
-        Set<Recompensa> rewards = new HashSet<Recompensa>();
+    public RecompensaList getRewardsWithOrigin(int x, int y){
+        RecompensaList rewards = new RecompensaList();
 
         lockAllLocais();
         try {

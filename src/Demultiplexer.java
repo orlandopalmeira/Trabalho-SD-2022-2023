@@ -15,7 +15,7 @@ public class Demultiplexer implements AutoCloseable {
 
 
     private class TaggedMessages {
-        Queue<byte[]> queue = new ArrayDeque<>();
+        Queue<Serializavel> queue = new ArrayDeque<Serializavel>();
         Condition cond = l.newCondition();
     }
 
@@ -64,11 +64,11 @@ public class Demultiplexer implements AutoCloseable {
         c.send(frame);
     }
 
-    public void send(int tag, byte[] data) throws IOException {
+    public void send(int tag, Serializavel data) throws IOException {
         c.send(tag, data);
     }
 
-    public byte[] receive(int tag) throws Exception {
+    public Serializavel receive(int tag) throws Exception {
         l.lock();
         try{
             TaggedMessages td = map.get(tag);
@@ -81,7 +81,7 @@ public class Demultiplexer implements AutoCloseable {
                     throw this.exception;
                 }
                 if (!td.queue.isEmpty()){
-                    byte[] data = td.queue.poll();
+                    Serializavel data = td.queue.poll();
                     return data;
                 }
                 td.cond.await();

@@ -7,15 +7,14 @@ import java.io.Serializable;
 public class Frame {
 
     public final int tag;
-    //public final byte[] data;
-    public final Serializable data;
+    public final Serializavel data;
 
     /**
      * Creates a <code>Frame</code> containing the specified information.
      * @param tag this frame's type.
      * @param data the message this frame contains.
      */
-    public Frame(int tag, Serializable data) {
+    public Frame(int tag, Serializavel data) {
         this.tag = tag;
         this.data = data;
     }

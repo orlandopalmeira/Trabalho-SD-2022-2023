@@ -5,7 +5,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class Connection implements AutoCloseable {
 
-    private Socket socket;
+    private final Socket socket;
     private final DataInputStream dis;
     private final DataOutputStream dos;
     private final Lock rl = new ReentrantLock();
@@ -17,36 +17,13 @@ public class Connection implements AutoCloseable {
         this.dos = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
     }
 
-    /*
 
     public void send(Frame frame) throws IOException {
-        try {
-            wl.lock();
-            this.dos.writeInt(frame.tag);
-            frame.data.serialize(this.dos);
-            this.dos.flush();
-        }
-        finally {
-            wl.unlock();
-        }
+        int tag = frame.tag;
+        Serializavel ser = frame.data;
+        send(tag, ser);
     }
-     */
 
-    /*
-    public void send(int tag, byte[] data) throws IOException {
-        try {
-            wl.lock();
-            this.dos.writeInt(tag);
-            this.dos.writeInt(data.length);
-            this.dos.write(data);
-            this.dos.flush();
-        }
-        finally {
-            wl.unlock();
-        }
-        //this.send(new Frame(tag, data));
-    }
-     */
 
     public void send(int tag, Serializavel data) throws IOException {
         try {
@@ -62,13 +39,21 @@ public class Connection implements AutoCloseable {
 
     public Frame receive() throws IOException {
         int tag;
-        byte[] data;
+        Serializavel data = null;
         try {
             rl.lock();
             tag = this.dis.readInt();
-            int len = this.dis.readInt();
-            data = new byte[len];
-            this.dis.readFully(data);
+            data = data.deserialize(dis);
+            // TODO implementar verificações da tag para fazer o correto deserialize.
+            switch (tag){
+                case 0:
+
+                    break;
+                case 1:
+
+                    break;
+                case 2:
+            }
         }
         finally {
             rl.unlock();

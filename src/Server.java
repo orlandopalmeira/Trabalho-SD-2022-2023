@@ -5,6 +5,7 @@ import java.util.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+
 public class Server {
     public static void main(String[] args) throws IOException{
         ServerSocket ss = new ServerSocket(12345);
@@ -105,32 +106,30 @@ public class Server {
                         }
                         // Probing de trotinetes à volta duma área.
                         else if (frame.tag == 2){
-                            String data = new String(frame.data);
-                            String [] tokens = data.split(" ");
-                            int x = Integer.parseInt(tokens[0]);
-                            int y = Integer.parseInt(tokens[1]);
+                            Pair data = (Pair) frame.data;
+                            int x = data.getX();
+                            int y = data.getY();
                             System.out.printf("Probing de trotinetes em (%d,%d).%n", x,y); // LOG
-                            List<Pair> ls = mapa.trotinetesArround(x,y);
-                            c.send(frame.tag, Pair.toStringPairs(ls).getBytes());
+                            PairList ls = mapa.trotinetesArround(x,y);
+                            c.send(frame.tag, ls);
+                            //c.send(frame.tag, Pair.toStringPairs(ls).getBytes());
                         }
                         // Probing de recompensas com origem numa localizacao.
                         else if (frame.tag == 3) {
-                            String data = new String(frame.data);
-                            String [] tokens = data.split(" ");
-                            int x = Integer.parseInt(tokens[0]);
-                            int y = Integer.parseInt(tokens[1]);
+                            Pair data = (Pair) frame.data;
+                            int x = data.getX();
+                            int y = data.getY();
                             System.out.printf("Probing de recompensas em (%d,%d).%n", x,y); // LOG
-                            Set<Recompensa> rs = mapa.getRewardsWithOrigin(x,y);
-                            c.send(frame.tag, Recompensa.toStringRecompensas(rs).getBytes());
-                            //c.send(frame.tag, rs.);
+                            RecompensaList rs = mapa.getRewardsWithOrigin(x,y);
+                            c.send(frame.tag, rs);
+                            //c.send(frame.tag, Recompensa.toStringRecompensas(rs).getBytes());
                         }
                         // Reservar trotinete
                         else if (frame.tag == 4){
                             // todo Falta lógica de códigos de reserva.
-                            String data = new String(frame.data);
-                            String [] tokens = data.split(" ");
-                            int x = Integer.parseInt(tokens[0]);
-                            int y = Integer.parseInt(tokens[1]);
+                            Pair data = (Pair) frame.data;
+                            int x = data.getX();
+                            int y = data.getY();
                             System.out.printf("Pedido de reserva de trotinete em (%d,%d).%n", x,y); // LOG
                             List<Pair> lista = mapa.trotinetesArround(x,y);
                             if(lista.size() > 0){ // se houver trotinetes disponiveis.
@@ -140,49 +139,50 @@ public class Server {
                                 rewardsCond.signalAll(); // sinaliza uma alteração no mapa para o gerador de recompensas.
                                 rewardslock.writeLock().unlock();
                                 // Enviar codigo de sucesso e localizacao
-                                c.send(frame.tag, closest.toString().getBytes());
+                                c.send(frame.tag, closest);
                             }
                             else{
-                                // Enviar codigo de insucesso.
-                                c.send(frame.tag, "0".getBytes());
+                                // FIXME Enviar codigo de insucesso.
+                                c.send(frame.tag, null);
                             }
                         }
                         // Estacionar trotinete
                         else if (frame.tag == 5){
                             // todo Falta lógica de códigos de reserva.
-                            String data = new String(frame.data);
-                            String [] tokens = data.split(" ");
-                            int x = Integer.parseInt(tokens[0]);
-                            int y = Integer.parseInt(tokens[1]);
+                            Pair data = (Pair) frame.data;
+                            int x = data.getX();
+                            int y = data.getY();
                             System.out.printf("Estacionamento de trotinete em (%d,%d).%n", x,y); // LOG
                             boolean flag = mapa.addTrotineta(x,y);
                             if(flag){
                                 rewardslock.writeLock().lock();
                                 rewardsCond.signalAll(); // sinaliza uma alteração no mapa para o gerador de recompensas.
                                 rewardslock.writeLock().unlock();
-                                c.send(frame.tag, "1".getBytes());
+                                // FIXME Envio de codigo de sucesso.
+                                //c.send(frame.tag, "1".getBytes());
                             }
                             else{
-                                c.send(frame.tag, "0".getBytes());
+                                // FIXME Envio de codigo de insucesso.
+                                //c.send(frame.tag, "0".getBytes());
                             }
                         }
                         // Pedido de notificacao
                         else if (frame.tag == 6){
-                            String data = new String(frame.data);
-                            String [] tokens = data.split(" ");
-                            int x = Integer.parseInt(tokens[0]);
-                            int y = Integer.parseInt(tokens[1]);
+                            Pair data = (Pair) frame.data;
+                            int x = data.getX();
+                            int y = data.getY();
                             System.out.printf("Pedido de notificação de recompensas na área de (%d,%d).%n", x,y); // LOG
                             Pair watchedLocal = new Pair(x,y);
                             if (notificationThreadsMap.containsKey(watchedLocal)){
-                                c.send(frame.tag, "0".getBytes());
+                                // FIXME Envio de mensagem a dizer que a notificação ja está ativa.
+                                //c.send(frame.tag, "0".getBytes());
                                 continue;
                             }
                             Thread sendNotifications = new Thread(() -> {
                                 try {
                                     while(true){
                                         boolean flag = true;
-                                        Collection<Recompensa> newl = null, ant = mapa.getRewardsWithOrigin(watchedLocal.getX(),watchedLocal.getY());
+                                        RecompensaList newl = null, ant = mapa.getRewardsWithOrigin(watchedLocal.getX(),watchedLocal.getY());
                                         while(flag){
                                             Localizacao l = mapa.getLocalizacao(watchedLocal);
                                             l.lock.writeLock().lock();
@@ -195,7 +195,7 @@ public class Server {
                                             flag = ant.containsAll(newl);
                                         }
                                         newl.removeAll(ant);
-                                        c.send(30, (Recompensa.toStringRecompensas(newl)).getBytes());
+                                        c.send(30, newl);
                                     }
                                 } catch (Exception e) {
                                     throw new RuntimeException(e);
@@ -203,8 +203,8 @@ public class Server {
                             });
                             notificationThreadsMap.put(watchedLocal, sendNotifications);
                             sendNotifications.start();
-                            c.send(frame.tag, "1".getBytes());
-
+                            // FIXME Envio de codigo de pedido de notificação bem sucedido.
+                            //c.send(frame.tag, "1".getBytes());
                         }
                         System.out.println(mapa);
 
