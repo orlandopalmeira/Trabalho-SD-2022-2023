@@ -39,28 +39,43 @@ public class Connection implements AutoCloseable {
 
     /**
      *
-     * Case 2: Pair
-     * @return
-     * @throws IOException
+     * Tag 2: Pair <br>
+     * Tag 3: Pair <br>
+     * Tag 4: Pair <br>
+     * Tag 5: Pair <br>
+     * Tag 11: PairList <br>
+     * Tag 12: RecompensaList <br>
+     * Tag 30: RecompensaList (Notificações) <br>
+     * @return Frame
      */
     public Frame receive() throws IOException {
         int tag;
-        //Serializavel data = null;
-        //Serializavel data = new Pair(0,0);
+        Serializavel data = null;
         try {
             rl.lock();
             tag = this.dis.readInt();
-            //data = data.deserialize(dis);
             // TODO implementar verificações da tag para fazer o correto deserialize.
-            switch (tag){
-                case 2:
+            switch (tag) {
+                case 0,1 -> {
+                    AccountInfo ac = new AccountInfo();
+                    data = (AccountInfo) ac.deserialize(dis);
+                }
+                case 2,3,4,5,6 -> {
                     Pair p = new Pair();
-                    p = (Pair) p.deserialize(dis);
-
-                    break;
-                case 11:
-
-                    break;
+                    data = (Pair) p.deserialize(dis);
+                }
+                case 11 -> {
+                    PairList pl = new PairList();
+                    data = (PairList) pl.deserialize(dis);
+                }
+                case 12, 30 -> {
+                    RecompensaList recompensas = new RecompensaList();
+                    data = recompensas.deserialize(dis);
+                }
+                case 13 -> {
+                    Mensagem mess = new Mensagem();
+                    data = mess.deserialize(dis);
+                }
             }
         }
         finally {

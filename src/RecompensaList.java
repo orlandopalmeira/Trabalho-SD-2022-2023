@@ -26,14 +26,13 @@ public class RecompensaList extends HashSet<Recompensa> implements Serializavel{
         }
     }
 
-
     @Override
     public Serializavel deserialize(DataInputStream in) throws IOException {
-        PairList res = new PairList();
-        Pair pair = new Pair(0,0);
+        RecompensaList res = new RecompensaList();
+        Recompensa rec = new Recompensa();
         int len = in.readInt();
         for (int i = 0; i<len; i++){
-            res.add((Pair) pair.deserialize(in));
+            res.add(rec.deserialize(in));
         }
         return res;
     }

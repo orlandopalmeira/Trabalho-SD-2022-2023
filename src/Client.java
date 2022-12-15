@@ -1,6 +1,7 @@
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.Socket;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.locks.ReentrantLock;
@@ -45,11 +46,9 @@ public class Client {
         ReentrantLock printLock = new ReentrantLock(); // lock para prints de notificações não atropelarem o resto das funcionalidades.
 
         String username = null;
-        username = "re"; //  TODO remove in final version.
-        /*
-
+        //username = "re"; //  TODO remove in final version.
         while (username == null) {
-            System.out.print("***TROTINETAS***\n"
+            System.out.print("*** LOGIN ***\n"
                     + "\n"
                     + "Pretende:\n"
                     + "1) Registar nova conta.\n"
@@ -64,12 +63,12 @@ public class Client {
                 String uName = stdin.readLine();
                 System.out.print("Introduza a sua palavra-passe: ");
                 String password = stdin.readLine();
-                String data = String.format("%s %s", uName, password);
-                // User registration attempt. tag = (0)
-                m.send(0, data.getBytes());
-                String response = new String(m.receive(0));
+                AccountInfo acc = new AccountInfo(uName, password);
+                //String data = String.format("%s %s", uName, password);
+                m.send(0, acc); // User registration attempt. tag = (0)
+                Mensagem response = (Mensagem) m.receive(13);
                 // Recebe 1 como sinal de sucesso.
-                if(response.startsWith("1")) {
+                if(response.equals(1)) {
                     username = uName;
                     System.out.printf("\nRegistado com sucesso %s!%n", uName);
                 }
@@ -85,19 +84,22 @@ public class Client {
                 String uName = stdin.readLine();
                 System.out.print("Introduza a sua palavra-passe: ");
                 String password = stdin.readLine();
-                String data = String.format("%s %s", uName, password);
+                AccountInfo acc = new AccountInfo(uName, password);
+                //String data = String.format("%s %s", uName, password);
                 // User log-in attempt.  tag = (1)
-                m.send(1, data.getBytes());
-                String response = new String(m.receive(1));
-                if(!response.startsWith("Erro")) {
+                m.send(1, acc);
+                Mensagem response = (Mensagem) m.receive(13);
+                if(response.equals(1)) {
                     username = uName;
                     System.out.printf("\nBem-vindo %s!%n", uName);
                 }
+                else if (response.equals(0))
+                    System.out.println("\nPassword incorreta.\n");
                 else
-                    System.out.println("\n" + response + "\n");
+                    System.out.println("\nConta inexistente.\n");
+
             }
         }
-         */
 
         // Inicio de thread que responde fica à escuta de eventuais notificações.
         Thread receivingNotifications = new Thread(()->{
@@ -148,15 +150,15 @@ public class Client {
                     }
                     par = parsePair(location);
                     m.send(2, par);
-                    PairList trotinetes = (PairList) m.receive(11);
+                    PairList trotinetes = (PairList) m.receive(11); // TODO STC (SUBJECT TO CHANGE)
                     if (trotinetes.size() == 0)
                         System.out.println("Não há trotinetes na área.");
                     else {
-                        //System.out.println("\nLocalizações:");
+                        System.out.println("\nLocalizações:");
                         System.out.print(trotinetes);
                     }
                 }
-                case "2" -> { // 2) Porbing de Recompensas -> tag(3)
+                case "2" -> { // 2) Probing de Recompensas -> tag(3)
                     while (true) {
                         System.out.print("Insira a localização no formato \"x y\": ");
                         location = stdin.readLine();
@@ -165,11 +167,11 @@ public class Client {
                     }
                     par = parsePair(location);
                     m.send(3, par);
-                    RecompensaList recompensas = (RecompensaList) m.receive(3);
+                    RecompensaList recompensas = (RecompensaList) m.receive(12); // TODO TAG 12 STC
                     if (recompensas.size() == 0)
                         System.out.println("\nNão há recompensas na área.\n");
                     else {
-                        //System.out.println("\nRecompensas:");
+                        System.out.println("\nRecompensas:");
                         System.out.print(recompensas);
                     }
                 }

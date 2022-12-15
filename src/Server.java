@@ -62,57 +62,48 @@ public class Server {
 
                     while(true){
                         Frame frame = c.receive();
-                        /*
-                        // se não pretende registar-se ou fazer login, então não é permitido acesso às funcionalidades.
-                        if (frame.tag != 0 && frame.tag != 1 && !isLoggedIn){
-                            c.send(frame.tag, "Erro. Não está registrado.".getBytes());
-                            continue;
-                        }
-                        ////////////////////////
+
                         // User registration attempt
                         if (frame.tag == 0) {
                             System.out.println("User registration attempt."); // pequeno log.
-                            String data = new String(frame.data);
-                            String [] tokens = data.split(" ");
-                            String username = tokens[0];
-                            String password = tokens[1];
+                            AccountInfo acc = (AccountInfo) frame.data;
+                            String username = acc.username;
+                            String password = acc.password;
                             boolean flag = accounts.addAccount(username, password);
                             if (flag) {
                                 isLoggedIn = true;
-                                c.send(frame.tag, "1".getBytes()); // "1" é mensagem de sucesso.
+                                c.send(13, new Mensagem(1)); // "1" é mensagem de sucesso.
                             }
                             else {
-                                c.send(frame.tag, "0".getBytes());// "0" é mensagem de conta ja existente.
+                                c.send(13, new Mensagem(0));// "0" é mensagem de conta ja existente.
                             }
                         }
                         // User log-in attempt.
                         else if (frame.tag == 1) {
                             System.out.println("User log-in attempt."); // pequeno log.
-                            String data = new String(frame.data);
-                            String [] tokens = data.split(" ");
-                            String username = tokens[0];
-                            String password = tokens[1];
+                            AccountInfo acc = (AccountInfo) frame.data;
+                            String username = acc.username;
+                            String password = acc.password;
                             String stored_password;
                             stored_password = accounts.getPassword(username);
                             if (stored_password != null) {
                                 if (stored_password.equals(password)) {
                                     isLoggedIn = true;
-                                    c.send(frame.tag, "1".getBytes()); // "1" é mensagem de sucesso.
+                                    c.send(13, new Mensagem(1)); // "1" é mensagem de sucesso.
                                 }
                                 else
-                                    c.send(frame.tag, "Erro-palavra-passe errada.".getBytes()); // Talvez alterar para mensagem mais curta.
+                                    c.send(13, new Mensagem(0)); // "0" é mensagem de password errada.
                             } else
-                                c.send(frame.tag, "Erro-conta não existe.".getBytes()); // Talvez alterar para mensagem mais curta.
+                                c.send(13, new Mensagem(2)); // "2" é mensagem de conta nem sequer existe.
                         }
-                         */
+
                         // Probing de trotinetes à volta duma área.
                         if (frame.tag == 2){
                             Pair data = (Pair) frame.data;
-                            int x = data.getX();
-                            int y = data.getY();
+                            int x = data.getX(), y = data.getY();
                             System.out.printf("Probing de trotinetes em (%d,%d).%n", x,y); // LOG
                             PairList ls = mapa.trotinetesArround(x,y);
-                            c.send(ls.frametag, ls);
+                            c.send(11, ls);
                             //c.send(frame.tag, Pair.toStringPairs(ls).getBytes());
                         }
                         // Probing de recompensas com origem numa localizacao.
@@ -122,7 +113,7 @@ public class Server {
                             int y = data.getY();
                             System.out.printf("Probing de recompensas em (%d,%d).%n", x,y); // LOG
                             RecompensaList rs = mapa.getRewardsWithOrigin(x,y);
-                            c.send(frame.tag, rs);
+                            c.send(12, rs);
                             //c.send(frame.tag, Recompensa.toStringRecompensas(rs).getBytes());
                         }
                         // Reservar trotinete

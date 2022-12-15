@@ -33,7 +33,7 @@ public class PairList extends ArrayList<Pair> implements Serializavel{
     @Override
     public Serializavel deserialize(DataInputStream in) throws IOException {
         PairList res = new PairList();
-        Pair pair = new Pair(0,0);
+        Pair pair = new Pair();
         int len = in.readInt();
         for (int i = 0; i<len; i++){
             res.add((Pair) pair.deserialize(in));

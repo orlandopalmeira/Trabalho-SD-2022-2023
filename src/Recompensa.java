@@ -11,6 +11,12 @@ public class Recompensa implements Serializavel {
     public Pair destino;
     public int reward;
 
+    public Recompensa (){
+        this.origem = new Pair();
+        this.destino = new Pair();
+        this.reward = 0;
+    }
+
     public Recompensa (Pair origem, Pair destino){
         this.origem = origem;
         this.destino = destino;
