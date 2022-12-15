@@ -68,7 +68,7 @@ public class Server {
                             c.send(frame.tag, "Erro. Não está registrado.".getBytes());
                             continue;
                         }
-                         */
+                        ////////////////////////
                         // User registration attempt
                         if (frame.tag == 0) {
                             System.out.println("User registration attempt."); // pequeno log.
@@ -104,14 +104,15 @@ public class Server {
                             } else
                                 c.send(frame.tag, "Erro-conta não existe.".getBytes()); // Talvez alterar para mensagem mais curta.
                         }
+                         */
                         // Probing de trotinetes à volta duma área.
-                        else if (frame.tag == 2){
+                        if (frame.tag == 2){
                             Pair data = (Pair) frame.data;
                             int x = data.getX();
                             int y = data.getY();
                             System.out.printf("Probing de trotinetes em (%d,%d).%n", x,y); // LOG
                             PairList ls = mapa.trotinetesArround(x,y);
-                            c.send(frame.tag, ls);
+                            c.send(ls.frametag, ls);
                             //c.send(frame.tag, Pair.toStringPairs(ls).getBytes());
                         }
                         // Probing de recompensas com origem numa localizacao.

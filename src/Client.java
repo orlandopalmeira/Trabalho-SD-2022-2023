@@ -1,6 +1,8 @@
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.concurrent.locks.ReentrantLock;
 
 
@@ -25,6 +27,13 @@ public class Client {
         return true;
     }
 
+    public static Pair parsePair (String localizacao) {
+        String[] tokens = localizacao.split(" ");
+        int x = Integer.parseInt(tokens[0]);
+        int y = Integer.parseInt(tokens[1]);
+        return new Pair(x,y);
+    }
+
     public static void main(String[] args) throws Exception {
         Socket s = new Socket("localhost", 12345);
         Demultiplexer m = new Demultiplexer(new Connection(s));
@@ -36,7 +45,9 @@ public class Client {
         ReentrantLock printLock = new ReentrantLock(); // lock para prints de notificações não atropelarem o resto das funcionalidades.
 
         String username = null;
-        username = "re"; //  FIXME remove in final version.
+        username = "re"; //  TODO remove in final version.
+        /*
+
         while (username == null) {
             System.out.print("***TROTINETAS***\n"
                     + "\n"
@@ -86,19 +97,20 @@ public class Client {
                     System.out.println("\n" + response + "\n");
             }
         }
+         */
 
         // Inicio de thread que responde fica à escuta de eventuais notificações.
         Thread receivingNotifications = new Thread(()->{
-            String response = null;
+            RecompensaList recompensas = null;
             while(true){
                 try {
-                    response = new String(m.receive(30)); // tag(30) usada para notificações.
+                    recompensas = (RecompensaList) m.receive(30); // tag(30) usada para notificações.
                 } catch (Exception ignored) {
                     System.exit(0);
                 }
                 printLock.lock();
                 try {
-                    System.out.println("\n(Notificação) Surgiu a seguinte recompensa " + response + ".");
+                    System.out.println("\n(Notificação) Surgiu a seguinte recompensa: " + recompensas);
                 } finally {
                     printLock.unlock();
                 }
@@ -122,73 +134,79 @@ public class Client {
                     + "Insira a opção que pretende: ");
             String option = stdin.readLine();
             String location, response;
-            switch(option) {
-                case "0": // Sair da aplicação.
+            Pair par;
+            switch (option) {
+                case "0" -> // Sair da aplicação.
                     //m.send(99, new byte[0]);
-                    exit = true;
-                    break;
-
-                case "1": // "1) Trotinetes livres -> tag(2)
+                        exit = true;
+                case "1" -> { // "1) Probing de trotinetes livres -> tag(2)
                     while (true) {
                         System.out.print("Insira a localização no formato \"x y\": ");
                         location = stdin.readLine();
                         if (validLocation(location)) break;
                         System.out.println("Input inválido.");
                     }
-                    m.send(2, location.getBytes());
-                    response = new String(m.receive(2));
-                    if (response.length() == 0)
+                    par = parsePair(location);
+                    m.send(2, par);
+                    PairList trotinetes = (PairList) m.receive(11);
+                    if (trotinetes.size() == 0)
                         System.out.println("Não há trotinetes na área.");
                     else {
-                        System.out.println("\nLocalizações:");
-                        System.out.print(response);
+                        //System.out.println("\nLocalizações:");
+                        System.out.print(trotinetes);
                     }
-                    break;
-
-                case "2": // 2) Recompensas -> tag(3)
+                }
+                case "2" -> { // 2) Porbing de Recompensas -> tag(3)
                     while (true) {
                         System.out.print("Insira a localização no formato \"x y\": ");
                         location = stdin.readLine();
                         if (validLocation(location)) break;
                         System.out.println("Input inválido.");
                     }
-                    m.send(3, location.getBytes());
-                    response = new String(m.receive(3));
-                    if (response.length() == 0)
+                    par = parsePair(location);
+                    m.send(3, par);
+                    RecompensaList recompensas = (RecompensaList) m.receive(3);
+                    if (recompensas.size() == 0)
                         System.out.println("\nNão há recompensas na área.\n");
                     else {
-                        System.out.println("\nRecompensas:");
-                        System.out.print(response);
+                        //System.out.println("\nRecompensas:");
+                        System.out.print(recompensas);
                     }
-                    break;
-
-                case "3": // 3) Reservar trotinete -> tag(4)
+                }
+                case "3" -> { // 3) Reservar trotinete -> tag(4)
                     while (true) {
                         System.out.print("Insira a localização no formato \"x y\": ");
                         location = stdin.readLine();
                         if (validLocation(location)) break;
                         System.out.println("Input inválido.");
                     }
-                    m.send(4, location.getBytes());
-                    response = new String(m.receive(4));
-                    // tratar da resposta recebida
+                    par = parsePair(location);
+                    m.send(4, par);
+                }
+                // TODO receber CODIGO + PAIR
+                //RecompensaList recompensas = (RecompensaList) m.receive(4);
+                //response = new String(m.receive(4));
+                    /*
                     if ("0".equals(response)){
                         System.out.println("Não foi possível a reserva.");
                     }
                     else {
                         System.out.println("Reservado.");
                     }
+                     */
 
-                    break;
-
-                case "4": // 4) Estacionar trotinete -> tag(5)
+                case "4" -> { // 4) Estacionar trotinete -> tag(5)
                     while (true) {
                         System.out.print("Insira a localização no formato \"x y\": ");
                         location = stdin.readLine();
                         if (validLocation(location)) break;
                         System.out.println("Input inválido.");
                     }
-                    m.send(5, location.getBytes());
+                    // TODO TRATAR DA LOGICA DE ENVIO DE CODIGO + PAIR
+                    par = parsePair(location);
+                    m.send(5, par);
+                }
+                    /*
                     response = new String(m.receive(5));
                     if (response.equals("0")){
                         System.out.println("Posição inválida, operação recusada pelo servidor.");
@@ -196,16 +214,19 @@ public class Client {
                     else{
                         System.out.println("Pedido enviado com sucesso.");
                     }
-                    break;
-
-                case "5": // 5) Ativar notificação -> tag(6)
+                     */
+                case "5" -> { // 5) Ativar notificação -> tag(6)
                     while (true) {
                         System.out.print("Insira a localização no formato \"x y\": ");
                         location = stdin.readLine();
                         if (validLocation(location)) break;
                         System.out.println("Input inválido.");
                     }
-                    m.send(6, location.getBytes());
+                    par = parsePair(location);
+                    m.send(6, par);
+                }
+                // TODO receber MENSAGEM DE SUCESSO OU INSUCESSO DE NOTIFICAÇÃO
+                    /*
                     response = new String(m.receive(6));
                     if (response.equals("0")){
                         System.out.println("Notificações sobre esta localização já estavam ativadas.");
@@ -213,7 +234,7 @@ public class Client {
                     else{
                         System.out.println("Pedido enviado com sucesso.");
                     }
-                    break;
+                     */
             }
             if (!option.equals("0")){
                 System.out.println("Prime Enter para continuar.");

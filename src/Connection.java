@@ -37,22 +37,30 @@ public class Connection implements AutoCloseable {
         }
     }
 
+    /**
+     *
+     * Case 2: Pair
+     * @return
+     * @throws IOException
+     */
     public Frame receive() throws IOException {
         int tag;
-        Serializavel data = null;
+        //Serializavel data = null;
+        //Serializavel data = new Pair(0,0);
         try {
             rl.lock();
             tag = this.dis.readInt();
-            data = data.deserialize(dis);
+            //data = data.deserialize(dis);
             // TODO implementar verificações da tag para fazer o correto deserialize.
             switch (tag){
-                case 0:
-
-                    break;
-                case 1:
-
-                    break;
                 case 2:
+                    Pair p = new Pair();
+                    p = (Pair) p.deserialize(dis);
+
+                    break;
+                case 11:
+
+                    break;
             }
         }
         finally {

@@ -33,15 +33,6 @@ public class Recompensa implements Serializavel {
     }
 
 
-    public static String toStringRecompensas(Collection<Recompensa> recs){
-        List<Recompensa> sorted_ = recs.stream().sorted((r1, r2) -> {return r2.reward - r1.reward;}).toList();
-        StringBuilder res = new StringBuilder();
-        for(Recompensa r : sorted_){
-            res.append(r).append("\n");
-        }
-        return res.toString();
-    }
-
     @Override
     public String toString() {
         return "{" +

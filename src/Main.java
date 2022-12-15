@@ -11,9 +11,8 @@ public class Main {
 
         Runnable workers = () -> {
             mapa.addTrotineta(3,3);
-            List<Pair> l = mapa.trotinetesArround(2,3);
-            String res = Pair.toStringPairs(l);
-            System.out.println(res);
+            PairList l = mapa.trotinetesArround(2,3);
+            System.out.println(l);
 
             mapa.getRewardsWithOrigin(8, 4);
             mapa.trotinetesArround(5,4 );

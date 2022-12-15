@@ -11,6 +11,11 @@ public class Pair implements Comparable<Pair>, Serializavel{
     public int x;
     public int y;
 
+    public Pair(){
+        this.x = 0;
+        this.y = 0;
+    }
+
     public Pair(int x, int y){
         this.x = x;
         this.y = y;
@@ -48,19 +53,6 @@ public class Pair implements Comparable<Pair>, Serializavel{
             return Integer.compare(this.y, p.y);
         }
         return Integer.compare(this.x, p.x);
-    }
-
-    public static String toStringPairs(List<Pair> pairs){
-        StringBuilder ret = new StringBuilder();
-        //for(Pair p: pairs){
-        for(int i = 0; i < pairs.size(); i++){
-            Pair p = pairs.get(i);
-            int occurrences = Collections.frequency(pairs, p);
-            ret.append(occurrences).append(": ").append(p).append("\n");
-            //ret.append(occurrences + ": " + p + "\n");
-            i = pairs.lastIndexOf(p);
-        }
-        return ret.toString();
     }
 
     @Override
