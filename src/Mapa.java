@@ -307,8 +307,8 @@ public class Mapa {
     }
 
     /**
-     * Sinaliza todas as localizaçoes vizinhas.
-     * @param pares lista de objetos Pair.
+     * Sinaliza todas as localizaçoes da coleção.
+     * @param pares coleção de objetos Pair.
      */
     public void signalLocations (Collection<Pair> pares){
         for (Pair p: pares){
