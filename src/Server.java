@@ -3,6 +3,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
 import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 
@@ -14,8 +15,14 @@ public class Server {
         final Mapa mapa = new Mapa(10);
         System.out.println(mapa); // Printa o estado inicial do mapa.
 
+        // Trata da geração de códigos de reserva de trotinetes.
+        UniqueCode codeGenerator = new UniqueCode();
+
+        // Gere a reserva de trotinetes.
+        TrotinetesReservadas trotinetesReservadas = new TrotinetesReservadas();
+
         // Estruturas auxiliares de suporte ao mecanismo de geração de recompensas.
-        final ReentrantReadWriteLock rewardslock = new ReentrantReadWriteLock();
+        final ReentrantReadWriteLock rewardslock = new ReentrantReadWriteLock(); // TODO talvez pensar se um simples lock seria melhor.
         final Condition rewardsCond = rewardslock.writeLock().newCondition();
         final HashSet<Recompensa> recompensas = mapa.getRewards();
 
@@ -104,7 +111,6 @@ public class Server {
                             System.out.printf("Probing de trotinetes em (%d,%d).%n", x,y); // LOG
                             PairList ls = mapa.trotinetesArround(x,y);
                             c.send(11, ls);
-                            //c.send(frame.tag, Pair.toStringPairs(ls).getBytes());
                         }
                         // Probing de recompensas com origem numa localizacao.
                         else if (frame.tag == 3) {
@@ -114,11 +120,9 @@ public class Server {
                             System.out.printf("Probing de recompensas em (%d,%d).%n", x,y); // LOG
                             RecompensaList rs = mapa.getRewardsWithOrigin(x,y);
                             c.send(12, rs);
-                            //c.send(frame.tag, Recompensa.toStringRecompensas(rs).getBytes());
                         }
                         // Reservar trotinete
                         else if (frame.tag == 4){
-                            // todo Falta lógica de códigos de reserva.
                             Pair data = (Pair) frame.data;
                             int x = data.getX();
                             int y = data.getY();
@@ -128,14 +132,22 @@ public class Server {
                                 Pair closest = lista.get(0);
                                 mapa.retiraTrotineta(closest);
                                 rewardslock.writeLock().lock();
-                                rewardsCond.signalAll(); // sinaliza uma alteração no mapa para o gerador de recompensas.
-                                rewardslock.writeLock().unlock();
+                                try{
+                                    rewardsCond.signalAll(); // sinaliza uma alteração no mapa para o gerador de recompensas. todo talvez passar so a signal.
+                                } finally {
+                                    rewardslock.writeLock().unlock();
+                                }
                                 // Enviar codigo de sucesso e localizacao
-                                c.send(frame.tag, closest);
+                                int myCode = codeGenerator.getCode();
+                                /////// ADICIONAR ESTE NÚMERO A ALGUMA ESTRUTURA DE DADOS, PARA POSTERIOR VERIFICAÇAO NO ESTACIONAMENTO.//////
+                                CodigoReserva cr = new CodigoReserva(myCode, closest);
+                                trotinetesReservadas.add(cr);
+                                c.send(14, cr);
                             }
                             else{
-                                // FIXME Enviar codigo de insucesso.
-                                c.send(frame.tag, null);
+                                // Enviar codigo de insucesso.
+                                CodigoReserva cr = new CodigoReserva(-1);
+                                c.send(frame.tag, cr);
                             }
                         }
                         // Estacionar trotinete
@@ -166,8 +178,7 @@ public class Server {
                             System.out.printf("Pedido de notificação de recompensas na área de (%d,%d).%n", x,y); // LOG
                             Pair watchedLocal = new Pair(x,y);
                             if (notificationThreadsMap.containsKey(watchedLocal)){
-                                // FIXME Envio de mensagem a dizer que a notificação ja está ativa.
-                                //c.send(frame.tag, "0".getBytes());
+                                c.send(13, new Mensagem(0));
                                 continue;
                             }
                             Thread sendNotifications = new Thread(() -> {
@@ -195,8 +206,8 @@ public class Server {
                             });
                             notificationThreadsMap.put(watchedLocal, sendNotifications);
                             sendNotifications.start();
-                            // FIXME Envio de codigo de pedido de notificação bem sucedido.
-                            //c.send(frame.tag, "1".getBytes());
+                            // Envio de codigo de pedido de notificação bem sucedido.
+                            c.send(13, new Mensagem(1));
                         }
                         System.out.println(mapa);
 

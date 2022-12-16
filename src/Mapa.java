@@ -455,7 +455,7 @@ public class Mapa {
 
 
     @Override
-    public String toString() {
+    public String toString() { // TODO REMOVER INDICES DO MAPA PARA QUE N FIQUE MAL COM UMA TAMANHO MAIOR QUE 10.
         StringBuilder res = new StringBuilder();
         res.append(" :");
         for (int i = 0; i < N; i++) {

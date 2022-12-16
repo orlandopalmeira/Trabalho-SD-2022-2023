@@ -2,6 +2,9 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+/**
+ * Classe usada para a transmissão de informação de login.
+ */
 public class AccountInfo implements Serializavel{
     public final String username;
     public final String password;

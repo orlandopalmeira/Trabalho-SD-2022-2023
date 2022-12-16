@@ -24,7 +24,17 @@ public class Connection implements AutoCloseable {
         send(tag, ser);
     }
 
-
+    /**
+     * Tag 2: Pair <br>
+     * Tag 3: Pair <br>
+     * Tag 4: Pair <br>
+     * Tag 5: Pair <br>
+     * Tag 11: PairList <br>
+     * Tag 12: RecompensaList <br>
+     * Tag 13: Mensagem <br>
+     * Tag 14: CodigoReserva <br>
+     * Tag 30: RecompensaList (Notificações) <br>
+     */
     public void send(int tag, Serializavel data) throws IOException {
         try {
             wl.lock();
@@ -37,14 +47,19 @@ public class Connection implements AutoCloseable {
         }
     }
 
+    public void send(Serializavel data) throws IOException{ // TODO talvez ver o tipo de "data" e introduzir automaticamente a tag.
+
+    }
+
     /**
-     *
      * Tag 2: Pair <br>
      * Tag 3: Pair <br>
      * Tag 4: Pair <br>
      * Tag 5: Pair <br>
      * Tag 11: PairList <br>
      * Tag 12: RecompensaList <br>
+     * Tag 13: Mensagem <br>
+     * Tag 14: CodigoReserva <br>
      * Tag 30: RecompensaList (Notificações) <br>
      * @return Frame
      */
@@ -75,6 +90,10 @@ public class Connection implements AutoCloseable {
                 case 13 -> {
                     Mensagem mess = new Mensagem();
                     data = mess.deserialize(dis);
+                }
+                case 14 -> {
+                    CodigoReserva cr = new CodigoReserva();
+                    data = cr.deserialize(dis);
                 }
             }
         }

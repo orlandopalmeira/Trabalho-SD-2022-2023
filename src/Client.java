@@ -46,7 +46,7 @@ public class Client {
         ReentrantLock printLock = new ReentrantLock(); // lock para prints de notificações não atropelarem o resto das funcionalidades.
 
         String username = null;
-        //username = "re"; //  TODO remove in final version.
+        username = "re"; //  TODO remove in final version. (Simula login já efetuado)
         while (username == null) {
             System.out.print("*** LOGIN ***\n"
                     + "\n"
@@ -133,9 +133,9 @@ public class Client {
                     + "\n"
                     + "0) Sair.\n"
                     + "\n"
-                    + "Insira a opção que pretende: ");
+                    + "Opção: ");
             String option = stdin.readLine();
-            String location, response;
+            String location;
             Pair par;
             switch (option) {
                 case "0" -> // Sair da aplicação.
@@ -184,18 +184,15 @@ public class Client {
                     }
                     par = parsePair(location);
                     m.send(4, par);
-                }
-                // TODO receber CODIGO + PAIR
-                //RecompensaList recompensas = (RecompensaList) m.receive(4);
-                //response = new String(m.receive(4));
-                    /*
-                    if ("0".equals(response)){
-                        System.out.println("Não foi possível a reserva.");
+                    CodigoReserva myCode = (CodigoReserva) m.receive(14);
+
+                    if (myCode.successful()){
+                        System.out.println("Reservada trotinete na posição " + myCode.getLocalizacao() + ", com o seguinte código " + myCode.getCodigo() + ".");
                     }
                     else {
-                        System.out.println("Reservado.");
+                        System.out.println("Não foi possível a reserva.");
                     }
-                     */
+                }
 
                 case "4" -> { // 4) Estacionar trotinete -> tag(5)
                     while (true) {
@@ -207,9 +204,8 @@ public class Client {
                     // TODO TRATAR DA LOGICA DE ENVIO DE CODIGO + PAIR
                     par = parsePair(location);
                     m.send(5, par);
-                }
                     /*
-                    response = new String(m.receive(5));
+                    response = m.receive(5);
                     if (response.equals("0")){
                         System.out.println("Posição inválida, operação recusada pelo servidor.");
                     }
@@ -217,6 +213,7 @@ public class Client {
                         System.out.println("Pedido enviado com sucesso.");
                     }
                      */
+                }
                 case "5" -> { // 5) Ativar notificação -> tag(6)
                     while (true) {
                         System.out.print("Insira a localização no formato \"x y\": ");
@@ -226,17 +223,15 @@ public class Client {
                     }
                     par = parsePair(location);
                     m.send(6, par);
-                }
-                // TODO receber MENSAGEM DE SUCESSO OU INSUCESSO DE NOTIFICAÇÃO
-                    /*
-                    response = new String(m.receive(6));
-                    if (response.equals("0")){
+                    Mensagem response = (Mensagem) m.receive(13);
+                    if (response.equals(0)){
                         System.out.println("Notificações sobre esta localização já estavam ativadas.");
                     }
                     else{
-                        System.out.println("Pedido enviado com sucesso.");
+                        System.out.println("Notificação do local ativada com sucesso.");
                     }
-                     */
+
+                }
             }
             if (!option.equals("0")){
                 System.out.println("Prime Enter para continuar.");

@@ -2,6 +2,9 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+/**
+ * Classe que permite enviar um unico byte para confirmações do genero: Informação de login aceite pelo servidor, Reply do servidor sobre notificação aceite...
+ */
 public class Mensagem implements Serializavel{
     public byte mensagem;
 
