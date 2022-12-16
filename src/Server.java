@@ -28,20 +28,21 @@ public class Server {
         // Geração de recompensas em background.
         Thread evalRewards = new Thread(() -> {
             while(true) {
-                HashSet<Recompensa> newRecompensas = mapa.getRewards();
-                HashSet<Pair> toSignal = new HashSet<>();
-                HashSet<Recompensa> difRec = new HashSet<>(); // FIXME FOR DEBUG. ELIMINATE LATER.
-                for (Recompensa nr : newRecompensas) {
-                    if (!recompensas.contains(nr)){
-                        toSignal.addAll(mapa.getSurroundings(nr.origem, 2)); // adiciona as novas posicoes vizinhas de origem que têm novas recompensas.
-                        difRec.add(nr); // FIXME FOR DEBUG. ELIMINATE LATER.
-                    }
-                }
-                for (Pair p: toSignal){
-                    mapa.signalLocations(toSignal); // sinaliza as novas posicoes originais de recompensa.
-                }
-                rewardslock.writeLock().lock();
+                rewardslock.writeLock().lock(); //// talvez limitar o começo do lock, so na parte de alteração da estrutura de dados.
                 try {
+                    HashSet<Recompensa> newRecompensas = mapa.getRewards();
+                    HashSet<Pair> toSignal = new HashSet<>();
+                    //HashSet<Recompensa> difRec = new HashSet<>();
+
+                    for (Recompensa nr : newRecompensas) {
+                        if (!recompensas.contains(nr)){
+                            toSignal.addAll(mapa.getSurroundings(nr.origem, 2)); // adiciona as novas posicoes vizinhas de origem que têm novas recompensas.
+                            //difRec.add(nr);
+                        }
+                    }
+                    // sinaliza as novas posicoes com uma recompensa na origem.
+                    mapa.signalLocations(toSignal);
+
                     recompensas.clear();
                     recompensas.addAll(newRecompensas);
                     rewardsCond.await(); // fica à espera que haja uma mudanca no mapa (reservamento ou estacionamento de trotinete).
@@ -64,8 +65,8 @@ public class Server {
                 try(c){
 
                     HashMap<Pair, Thread> notificationThreadsMap = new HashMap<>(); // para armazenar as threads que tratam das notificações.
-                    //String thisUsername = "re"; // FIXME Na versão final é para estar aqui = null
-                    String thisUsername = null;
+                    String thisUsername = "";
+                    //String thisUsername = "re"; // TODO to simulate logged in.
 
                     while(true){
                         Frame frame = c.receive();
@@ -203,7 +204,7 @@ public class Server {
                                         c.send(30, newl);
                                     }
                                 } catch (Exception e) {
-                                    throw new RuntimeException(e);
+                                    throw new RuntimeException(e); // TODO - talvez eliminar este throw de excecao.
                                 }
                             });
                             notificationThreadsMap.put(watchedLocal, sendNotifications);

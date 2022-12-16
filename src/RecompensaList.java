@@ -7,7 +7,7 @@ import java.util.List;
 
 public class RecompensaList extends HashSet<Recompensa> implements Serializavel{
 
-    @Override
+    @Override // talvez alterar para agrupar recompensas por destino e enviar os respetivos destinos.
     public String toString(){
         List<Recompensa> sorted_ = this.stream().sorted((r1, r2) -> {return r2.reward - r1.reward;}).toList();
         StringBuilder res = new StringBuilder();
