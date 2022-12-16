@@ -1,9 +1,6 @@
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.Socket;
-import java.security.MessageDigest;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.concurrent.locks.ReentrantLock;
 
 
@@ -46,7 +43,7 @@ public class Client {
         ReentrantLock printLock = new ReentrantLock(); // lock para prints de notificações não atropelarem o resto das funcionalidades.
 
         String username = null;
-        username = "re"; //  TODO remove in final version. (Simula login já efetuado)
+        //username = "re"; //  TODO remove in final version. (Simula login já efetuado)
         while (username == null) {
             System.out.print("*** LOGIN ***\n"
                     + "\n"
@@ -136,6 +133,7 @@ public class Client {
                     + "Opção: ");
             String option = stdin.readLine();
             String location;
+            int code;
             Pair par;
             switch (option) {
                 case "0" -> // Sair da aplicação.
@@ -186,8 +184,8 @@ public class Client {
                     m.send(4, par);
                     CodigoReserva myCode = (CodigoReserva) m.receive(14);
 
-                    if (myCode.successful()){
-                        System.out.println("Reservada trotinete na posição " + myCode.getLocalizacao() + ", com o seguinte código " + myCode.getCodigo() + ".");
+                    if (myCode.isSuccess()){
+                        System.out.println("Reservada trotinete na posição " + myCode.getLocalizacao() + ", com o código " + myCode.getCodigo() + ".");
                     }
                     else {
                         System.out.println("Não foi possível a reserva.");
@@ -201,18 +199,25 @@ public class Client {
                         if (validLocation(location)) break;
                         System.out.println("Input inválido.");
                     }
+                    while (true){
+                        System.out.print("Insira o código de reserva: ");
+                        try{
+                            code = Integer.parseInt(stdin.readLine());
+                            if (code < 1){
+                                throw new NumberFormatException();
+                            }
+                        } catch (NumberFormatException exc){
+                            System.out.println("Input inválido.");
+                            continue;
+                        }
+                        break;
+                    }
                     // TODO TRATAR DA LOGICA DE ENVIO DE CODIGO + PAIR
                     par = parsePair(location);
-                    m.send(5, par);
-                    /*
-                    response = m.receive(5);
-                    if (response.equals("0")){
-                        System.out.println("Posição inválida, operação recusada pelo servidor.");
-                    }
-                    else{
-                        System.out.println("Pedido enviado com sucesso.");
-                    }
-                     */
+                    CodigoReserva cr = new CodigoReserva(code, par);
+                    m.send(5, cr);
+                    InfoViagem infoViagem = (InfoViagem) m.receive(15);
+                    System.out.println(infoViagem);
                 }
                 case "5" -> { // 5) Ativar notificação -> tag(6)
                     while (true) {

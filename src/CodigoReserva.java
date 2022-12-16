@@ -9,8 +9,7 @@ public class CodigoReserva implements Serializavel{
 
     /** -1 no caso de codigo de insucesso. Numero positivo para diferentes codigos possiveis atribuíveis. */
     private int codigo;
-
-    /** Pair com a localizacao associada. (Se código tiver o valor -1, este atributo é ignorável. */
+    /** Pair com a localizacao associada de origem ou destino conforme o contexto em que é utilizado. (Se código tiver o valor -1, este atributo é ignorável. */
     private Pair localizacao;
 
     public CodigoReserva (){
@@ -32,7 +31,7 @@ public class CodigoReserva implements Serializavel{
         this.localizacao = localizacao;
     }
 
-    public boolean successful(){
+    public boolean isSuccess(){
         return codigo != -1;
     }
 

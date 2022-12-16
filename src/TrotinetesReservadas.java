@@ -1,4 +1,3 @@
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.time.Instant;
@@ -8,45 +7,72 @@ import java.time.Duration;
 // Classe que gere os códigos de reserva de trotinetes reservadas.
 public class TrotinetesReservadas {
 
+    /**
+     * Contem informação sobre: <br>
+     * Instant - instante de reserva. <br>
+     * Pair - posição origem da reserva. <br>
+     * String - username que fez a reserva.
+     */
     private class InfoDeReserva{
         public Instant instanteDaReserva;
         public Pair origem;
+        public String username;
 
-        public InfoDeReserva(Pair origem) {
+        public InfoDeReserva(Pair origem, String username) {
             this.instanteDaReserva = Instant.now();
             this.origem = origem;
+            this.username = username;
         }
     }
 
-    private HashMap<Integer, InfoDeReserva> trotinetesReservadas;
+    private final HashMap<Integer, InfoDeReserva> infosDeReserva;
     private final ReentrantLock lockTrotinetesReservadas;
 
     public TrotinetesReservadas() {
-        this.trotinetesReservadas = new HashMap<>();
+        this.infosDeReserva = new HashMap<>();
         this.lockTrotinetesReservadas = new ReentrantLock();
     }
 
-    public void add(CodigoReserva cr){
+    /**
+     * Adiciona informação sobre o novo código de reserva, bem como o utilizador que fez a reserva.
+     * @param cr Contém informação sobre o código de reserva e a localização.
+     * @param username Utilizador que fez a reserva.
+     */
+    public void add(CodigoReserva cr, String username){
         this.lockTrotinetesReservadas.lock();
         try{
-            this.trotinetesReservadas.put(cr.getCodigo(), new InfoDeReserva(cr.getLocalizacao()));
+            this.infosDeReserva.put(cr.getCodigo(), new InfoDeReserva(cr.getLocalizacao(), username));
         } finally {
             this.lockTrotinetesReservadas.unlock();
         }
     }
 
-    // TODO - VAI RETORNAR A NOVA CLASSE QUE CONTEM INFORMAÇÃO DE CUSTO E DE RECOMPENSAS.
-    // TODO - OU SIMPLESMENTE A DURACAO DA RESERVA PARA DEPOIS SER CRIADA A NOVA CLASSE.
-    public void remove (int code){
+    /**
+     * Retorna a informação calculada da viagem do utilizador, tendo em conta o código da reserva de trotinete, o username do cliente e o destino onde a trotinete foi estacionada.
+     *
+     * @param cr Objeto CodigoReserva que contem o código de reserva e a localização destino.
+     * @param username Para verificar que o username que enviou este código, foi o que reservou a trotinete em questão.
+     * @return Retorna um objeto InfoEstacionameto, que irá conter a informação da viagem (podendo não levar informação nenhuma caso o pedido de estacionamento seja inválido).
+     */
+    public InfoViagem getInfoViagem(CodigoReserva cr, String username){
         Instant instanteDoEstacionamento = Instant.now();
+        int code = cr.getCodigo();
+        Pair destino = cr.getLocalizacao();
+        InfoViagem returnValue;
         this.lockTrotinetesReservadas.lock();
         try{
-            InfoDeReserva info = this.trotinetesReservadas.get(code);
+            InfoDeReserva info = this.infosDeReserva.get(code);
+            if (info == null || !info.username.equals(username)){
+                returnValue = new InfoViagem();
+                return returnValue;
+            }
             long duracao = Duration.between(instanteDoEstacionamento, info.instanteDaReserva).toSeconds();
-
+            int distancia = info.origem.distance(destino);
+            this.infosDeReserva.remove(code); // para remover a informação desnecessária
+            returnValue = new InfoViagem(duracao, distancia);
         } finally {
             this.lockTrotinetesReservadas.unlock();
         }
-        //return
+        return returnValue;
     }
 }

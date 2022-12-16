@@ -75,7 +75,7 @@ public class Connection implements AutoCloseable {
                     AccountInfo ac = new AccountInfo();
                     data = (AccountInfo) ac.deserialize(dis);
                 }
-                case 2,3,4,5,6 -> {
+                case 2,3,4,6 -> {
                     Pair p = new Pair();
                     data = (Pair) p.deserialize(dis);
                 }
@@ -91,9 +91,13 @@ public class Connection implements AutoCloseable {
                     Mensagem mess = new Mensagem();
                     data = mess.deserialize(dis);
                 }
-                case 14 -> {
+                case 5, 14 -> {
                     CodigoReserva cr = new CodigoReserva();
                     data = cr.deserialize(dis);
+                }
+                case 15 -> {
+                    InfoViagem infoViagem = new InfoViagem();
+                    data = infoViagem.deserialize(dis);
                 }
             }
         }

@@ -3,7 +3,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
 import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 
@@ -65,7 +64,8 @@ public class Server {
                 try(c){
 
                     HashMap<Pair, Thread> notificationThreadsMap = new HashMap<>(); // para armazenar as threads que tratam das notificações.
-                    boolean isLoggedIn = false;
+                    //String thisUsername = "re"; // FIXME Na versão final é para estar aqui = null
+                    String thisUsername = null;
 
                     while(true){
                         Frame frame = c.receive();
@@ -78,7 +78,7 @@ public class Server {
                             String password = acc.password;
                             boolean flag = accounts.addAccount(username, password);
                             if (flag) {
-                                isLoggedIn = true;
+                                thisUsername = username;
                                 c.send(13, new Mensagem(1)); // "1" é mensagem de sucesso.
                             }
                             else {
@@ -95,7 +95,7 @@ public class Server {
                             stored_password = accounts.getPassword(username);
                             if (stored_password != null) {
                                 if (stored_password.equals(password)) {
-                                    isLoggedIn = true;
+                                    thisUsername = username;
                                     c.send(13, new Mensagem(1)); // "1" é mensagem de sucesso.
                                 }
                                 else
@@ -139,9 +139,8 @@ public class Server {
                                 }
                                 // Enviar codigo de sucesso e localizacao
                                 int myCode = codeGenerator.getCode();
-                                /////// ADICIONAR ESTE NÚMERO A ALGUMA ESTRUTURA DE DADOS, PARA POSTERIOR VERIFICAÇAO NO ESTACIONAMENTO.//////
                                 CodigoReserva cr = new CodigoReserva(myCode, closest);
-                                trotinetesReservadas.add(cr);
+                                trotinetesReservadas.add(cr, thisUsername);
                                 c.send(14, cr);
                             }
                             else{
@@ -153,21 +152,24 @@ public class Server {
                         // Estacionar trotinete
                         else if (frame.tag == 5){
                             // todo Falta lógica de códigos de reserva.
-                            Pair data = (Pair) frame.data;
-                            int x = data.getX();
-                            int y = data.getY();
-                            System.out.printf("Estacionamento de trotinete em (%d,%d).%n", x,y); // LOG
-                            boolean flag = mapa.addTrotineta(x,y);
+                            CodigoReserva cr = (CodigoReserva) frame.data;
+                            int x = cr.getLocalizacao().getX();
+                            int y = cr.getLocalizacao().getY();
+                            System.out.printf("Pedido de estacionamento de trotinete em (%d,%d).%n", x,y); // LOG
+                            InfoViagem infoviagem = trotinetesReservadas.getInfoViagem(cr, thisUsername);
+                            boolean flag = false;
+                            if(infoviagem.isSuccessful()){
+                                flag = mapa.addTrotineta(x,y);
+                            }
                             if(flag){
                                 rewardslock.writeLock().lock();
                                 rewardsCond.signalAll(); // sinaliza uma alteração no mapa para o gerador de recompensas.
                                 rewardslock.writeLock().unlock();
                                 // FIXME Envio de codigo de sucesso.
-                                //c.send(frame.tag, "1".getBytes());
+                                c.send(15, infoviagem);
                             }
                             else{
-                                // FIXME Envio de codigo de insucesso.
-                                //c.send(frame.tag, "0".getBytes());
+                                c.send(15, new InfoViagem());
                             }
                         }
                         // Pedido de notificacao
