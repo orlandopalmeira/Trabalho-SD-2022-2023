@@ -360,7 +360,7 @@ public class Mapa {
      * Retorna uma List<Localizacao> onde indica a inexistência de trotinetes num raio de 2.
      * Funcao auxiliar.
      */
-    public List<Pair> getClearAreas(){
+    private List<Pair> getClearAreas(){
         List<Pair> clearLocals = new ArrayList<Pair>();
         HashSet<Localizacao> withTrotArround = new HashSet<Localizacao>();
         lockAllLocais();
@@ -451,6 +451,31 @@ public class Mapa {
         } finally {
             unlockAllLocais();
         }
+    }
+
+    /**
+     * Para verificação de recompensas na altura do estacionamento.
+     * @param p Objeto Pair.
+     * @return RecompensaList com as recompensas.
+     */
+    public RecompensaList getRewardsIn(Pair p){
+        RecompensaList rewards = new RecompensaList();
+        List<Pair> surroundings = getSurroundings(p, 2);
+        int x = p.getX(), y = p.getY();
+        lockAllLocais();
+        try {
+            // Locais destino de recompensas.
+            List<Pair> clearAreas = this.getClearAreas();
+            clearAreas.stream().filter(a -> !surroundings.contains(a));
+
+            List<Pair> trotinetas = this.trotinetesArround(x,y);
+            if (trotinetas.size() > 0){
+                clearAreas.forEach(ca -> rewards.add(new Recompensa(p, ca)));
+            }
+        } finally {
+            unlockAllLocais();
+        }
+        return rewards;
     }
 
 

@@ -92,17 +92,21 @@ public class Server {
                             AccountInfo acc = (AccountInfo) frame.data;
                             String username = acc.username;
                             String password = acc.password;
-                            String stored_password;
-                            stored_password = accounts.getPassword(username);
-                            if (stored_password != null) {
-                                if (stored_password.equals(password)) {
-                                    thisUsername = username;
-                                    c.send(13, new Mensagem(1)); // "1" é mensagem de sucesso.
-                                }
-                                else
-                                    c.send(13, new Mensagem(0)); // "0" é mensagem de password errada.
-                            } else
-                                c.send(13, new Mensagem(2)); // "2" é mensagem de conta nem sequer existe.
+                            if (accounts.isLogged(username)){
+                                c.send(13, new Mensagem(3));
+                            }
+                            else{
+                                String stored_password = accounts.getPassword(username);
+                                if (stored_password != null) {
+                                    if (stored_password.equals(password)) {
+                                        thisUsername = username;
+                                        c.send(13, new Mensagem(1)); // "1" é mensagem de sucesso.
+                                    }
+                                    else
+                                        c.send(13, new Mensagem(0)); // "0" é mensagem de password errada.
+                                } else
+                                    c.send(13, new Mensagem(2)); // "2" é mensagem de conta não existe.
+                            }
                         }
 
                         // Probing de trotinetes à volta duma área.
@@ -157,9 +161,20 @@ public class Server {
                             int x = cr.getLocalizacao().getX();
                             int y = cr.getLocalizacao().getY();
                             System.out.printf("Pedido de estacionamento de trotinete em (%d,%d).%n", x,y); // LOG
+                            if (!mapa.validPos(x,y)){
+                                c.send(15, new InfoViagem());
+                                continue;
+                            }
                             InfoViagem infoviagem = trotinetesReservadas.getInfoViagem(cr, thisUsername);
                             boolean flag = false;
                             if(infoviagem.isSuccessful()){
+                                // Verificação de recompensas
+                                RecompensaList rl = mapa.getRewardsIn(infoviagem.getOrigem());
+                                Recompensa situation = new Recompensa(infoviagem.getOrigem(), infoviagem.getDestino());
+                                if (rl.contains(situation)){
+                                    infoviagem.setRecompensa(situation);
+                                }
+                                // Estacionamento de trotinete no mapa.
                                 flag = mapa.addTrotineta(x,y);
                             }
                             if(flag){
@@ -209,7 +224,7 @@ public class Server {
                             });
                             notificationThreadsMap.put(watchedLocal, sendNotifications);
                             sendNotifications.start();
-                            // Envio de codigo de pedido de notificação bem sucedido.
+                            // Envio de mensagem de pedido de notificação bem sucedido.
                             c.send(13, new Mensagem(1));
                         }
                         System.out.println(mapa);

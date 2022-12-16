@@ -6,13 +6,36 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * Class that stores information about accounts.
  */
 public class Accounts implements Serializable {
-    private final HashMap<String, String> contas;
+
+    class PassAndIslogged{
+        String password;
+        boolean isLogged;
+
+        public PassAndIslogged(String password) {
+            this.password = password;
+            this.isLogged = true; // porque sempre que se cria uma conta, o utilizador entra automaticamente na aplicação.
+        }
+
+        public PassAndIslogged(String password, boolean isLogged) {
+            this.password = password;
+            this.isLogged = isLogged;
+        }
+    }
+    private final HashMap<String, PassAndIslogged> contas;
     public ReentrantReadWriteLock l = new ReentrantReadWriteLock();
 
     public Accounts() {
         this.contas = new HashMap<>();
-        this.contas.put("re", "re");
-        this.contas.put("1", "1");
+        //this.contas.put("re", new PassAndIslogged("re")); // TODO to eliminate
+    }
+
+    public boolean isLogged(String username){
+        l.readLock().lock();
+        try{
+            return contas.get(username).isLogged;
+        } finally {
+            l.readLock().unlock();
+        }
     }
 
     /**
@@ -23,7 +46,7 @@ public class Accounts implements Serializable {
     public String getPassword(String username) {
         l.readLock().lock();
         try{
-            return contas.get(username);
+            return contas.get(username).password;
         } finally {
             l.readLock().unlock();
         }
@@ -39,7 +62,7 @@ public class Accounts implements Serializable {
         l.writeLock().lock();
         try {
             if (accountExists(username)) return false;
-            contas.put(username, password);
+            contas.put(username, new PassAndIslogged(password));
             return true;
         } finally {
             l.writeLock().unlock();

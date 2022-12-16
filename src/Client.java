@@ -44,6 +44,7 @@ public class Client {
 
         String username = null;
         //username = "re"; //  TODO remove in final version. (Simula login já efetuado)
+        boolean hasReservedTrotinete = false;
         while (username == null) {
             System.out.print("*** LOGIN ***\n"
                     + "\n"
@@ -92,6 +93,8 @@ public class Client {
                 }
                 else if (response.equals(0))
                     System.out.println("\nPassword incorreta.\n");
+                else if (response.equals(3))
+                    System.out.println("\nConta já está a ser utilizada.\n");
                 else
                     System.out.println("\nConta inexistente.\n");
 
@@ -148,7 +151,7 @@ public class Client {
                     }
                     par = parsePair(location);
                     m.send(2, par);
-                    PairList trotinetes = (PairList) m.receive(11); // TODO STC (SUBJECT TO CHANGE)
+                    PairList trotinetes = (PairList) m.receive(11);
                     if (trotinetes.size() == 0)
                         System.out.println("Não há trotinetes na área.");
                     else {
@@ -165,7 +168,7 @@ public class Client {
                     }
                     par = parsePair(location);
                     m.send(3, par);
-                    RecompensaList recompensas = (RecompensaList) m.receive(12); // TODO TAG 12 STC
+                    RecompensaList recompensas = (RecompensaList) m.receive(12);
                     if (recompensas.size() == 0)
                         System.out.println("\nNão há recompensas na área.\n");
                     else {
@@ -174,6 +177,12 @@ public class Client {
                     }
                 }
                 case "3" -> { // 3) Reservar trotinete -> tag(4)
+                    if (hasReservedTrotinete){ // Restrição de reserva de apenas 1 trotinete.
+                        System.out.println("Já tem uma trotinete reservada!\n");
+                        System.out.println("Prime Enter para continuar.");
+                        stdin.readLine();
+                        continue;
+                    }
                     while (true) {
                         System.out.print("Insira a localização no formato \"x y\": ");
                         location = stdin.readLine();
@@ -186,6 +195,7 @@ public class Client {
 
                     if (myCode.isSuccess()){
                         System.out.println("Reservada trotinete na posição " + myCode.getLocalizacao() + ", com o código " + myCode.getCodigo() + ".");
+                        hasReservedTrotinete = true;
                     }
                     else {
                         System.out.println("Não foi possível a reserva.");
@@ -193,6 +203,12 @@ public class Client {
                 }
 
                 case "4" -> { // 4) Estacionar trotinete -> tag(5)
+                    if (!hasReservedTrotinete){ // Restrição de reserva de apenas 1 trotinete.
+                        System.out.println("Ainda não tem uma trotinete reservada!\n");
+                        System.out.println("Prime Enter para continuar.");
+                        stdin.readLine();
+                        continue;
+                    }
                     while (true) {
                         System.out.print("Insira a localização no formato \"x y\": ");
                         location = stdin.readLine();
@@ -212,12 +228,14 @@ public class Client {
                         }
                         break;
                     }
-                    // TODO TRATAR DA LOGICA DE ENVIO DE CODIGO + PAIR
                     par = parsePair(location);
                     CodigoReserva cr = new CodigoReserva(code, par);
                     m.send(5, cr);
                     InfoViagem infoViagem = (InfoViagem) m.receive(15);
                     System.out.println(infoViagem);
+                    if (infoViagem.isSuccessful()){
+                        hasReservedTrotinete = false;
+                    }
                 }
                 case "5" -> { // 5) Ativar notificação -> tag(6)
                     while (true) {

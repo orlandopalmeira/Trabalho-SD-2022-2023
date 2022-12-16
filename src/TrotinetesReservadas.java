@@ -49,7 +49,6 @@ public class TrotinetesReservadas {
 
     /**
      * Retorna a informação calculada da viagem do utilizador, tendo em conta o código da reserva de trotinete, o username do cliente e o destino onde a trotinete foi estacionada.
-     *
      * @param cr Objeto CodigoReserva que contem o código de reserva e a localização destino.
      * @param username Para verificar que o username que enviou este código, foi o que reservou a trotinete em questão.
      * @return Retorna um objeto InfoEstacionameto, que irá conter a informação da viagem (podendo não levar informação nenhuma caso o pedido de estacionamento seja inválido).
@@ -59,20 +58,21 @@ public class TrotinetesReservadas {
         int code = cr.getCodigo();
         Pair destino = cr.getLocalizacao();
         InfoViagem returnValue;
+        InfoDeReserva info;
         this.lockTrotinetesReservadas.lock();
         try{
-            InfoDeReserva info = this.infosDeReserva.get(code);
+            info = this.infosDeReserva.get(code);
             if (info == null || !info.username.equals(username)){
                 returnValue = new InfoViagem();
                 return returnValue;
             }
-            long duracao = Duration.between(instanteDoEstacionamento, info.instanteDaReserva).toSeconds();
-            int distancia = info.origem.distance(destino);
-            this.infosDeReserva.remove(code); // para remover a informação desnecessária
-            returnValue = new InfoViagem(duracao, distancia);
+            this.infosDeReserva.remove(code); // Para retirar a reserva da trotinete, uma vez que ja foi estacionada.
         } finally {
             this.lockTrotinetesReservadas.unlock();
         }
+        long duracao = Duration.between(info.instanteDaReserva, instanteDoEstacionamento).toSeconds();
+        Pair origem = info.origem;
+        returnValue = new InfoViagem(origem, destino, duracao);
         return returnValue;
     }
 }

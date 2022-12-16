@@ -5,10 +5,12 @@ import java.io.IOException;
 public class InfoViagem implements Serializavel{
 
     private boolean successful = true;
-    private long duracao;
+    private Pair origem;
+    private Pair destino;
     private int distancia;
+    private long duracao;
     private int custo;
-    private Recompensa recompensa; // pode ser null.
+    private Recompensa recompensa = null; // pode ser null.
 
     /**
      * Cria um objeto InfoEstacionamento sem informação que serve como código de insucesso.
@@ -19,20 +21,38 @@ public class InfoViagem implements Serializavel{
 
     /**
      * Construtor que calcula automaticamente o preço, tendo em conta a duração e a distancia.
-     * @param duracao
-     * @param distancia
+     * @param origem Origem da viagem.
+     * @param destino Destino da viagem.
+     * @param duracao Duraçao em segundos da viagem.y
      */
-    public InfoViagem(long duracao, int distancia) {
+    public InfoViagem(Pair origem, Pair destino, long duracao) {
+        this.origem = origem;
+        this.destino = destino;
+        this.distancia = origem.distance(destino);
         this.duracao = duracao;
-        this.distancia = distancia;
         this.custo = (int) duracao + distancia; // formula de calculo de custo provisória.
     }
 
-    public InfoViagem(long duracao, int distancia, int custo, Recompensa recompensa) {
-        this.duracao = duracao;
+    public InfoViagem(Pair origem, Pair destino, int distancia, long duracao, int custo, Recompensa recompensa) {
+        this.origem = origem;
+        this.destino = destino;
         this.distancia = distancia;
+        this.duracao = duracao;
         this.custo = custo;
         this.recompensa = recompensa;
+    }
+
+    public Pair getOrigem() {
+        return origem;
+    }
+
+    public Pair getDestino() {
+        return destino;
+    }
+
+    public void setRecompensa(Recompensa recompensa) {
+        this.recompensa = recompensa;
+        this.custo -= recompensa.reward;
     }
 
     public boolean isSuccessful(){
@@ -59,10 +79,18 @@ public class InfoViagem implements Serializavel{
     public void serialize(DataOutputStream out) throws IOException {
         out.writeBoolean(this.successful);
         if (this.successful){
-            out.writeLong(duracao);
+            origem.serialize(out);
+            destino.serialize(out);
             out.writeInt(distancia);
+            out.writeLong(duracao);
             out.writeInt(custo);
-            recompensa.serialize(out);
+            if (recompensa != null){
+                out.writeBoolean(true);
+                recompensa.serialize(out);
+            }
+            else {
+                out.writeBoolean(false);
+            }
         }
     }
 
@@ -70,12 +98,19 @@ public class InfoViagem implements Serializavel{
     public Serializavel deserialize(DataInputStream in) throws IOException {
         boolean successful = in.readBoolean();
         if (successful) {
-            long duracao = in.readLong();
+            Pair origem = new Pair(), destino = new Pair();
+            origem = (Pair) origem.deserialize(in);
+            destino = (Pair) destino.deserialize(in);
             int distancia = in.readInt();
+            long duracao = in.readLong();
             int custo = in.readInt();
-            Recompensa rec = new Recompensa();
-            rec = rec.deserialize(in);
-            return new InfoViagem(duracao, distancia, custo, rec);
+            boolean hasrecompensa = in.readBoolean();
+            Recompensa rec = null;
+            if (hasrecompensa) {
+                rec = new Recompensa();
+                rec = rec.deserialize(in);
+            }
+            return new InfoViagem(origem, destino, distancia, duracao, custo, rec);
         }
         else{
             return new InfoViagem();
