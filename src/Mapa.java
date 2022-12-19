@@ -480,15 +480,25 @@ public class Mapa {
 
 
     @Override
-    public String toString() { // TODO REMOVER INDICES DO MAPA PARA QUE N FIQUE MAL COM UMA TAMANHO MAIOR QUE 10.
+    public String toString() {
         StringBuilder res = new StringBuilder();
+        if(this.N > 10){
+            for (int i=0; i<this.N; i++){
+                for (int j = 0; j < this.N; j++) {
+                    res.append(mapa[i][j].getNtrotinetes());
+                }
+                res.append("\n");
+            }
+            return res.toString();
+        }
+        // Printa o mapa com os indices caso o tamanho do mapa seja menor que 10
         res.append(" :");
         for (int i = 0; i < N; i++) {
-            res.append(i);
+            res.append(i%10);
         }
         res.append("\n");
         for (int i=0; i<this.N; i++){
-            res.append(i).append(":");
+            res.append(i%10).append(":");
             for (int j = 0; j < this.N; j++) {
                 res.append(mapa[i][j].getNtrotinetes());
             }
