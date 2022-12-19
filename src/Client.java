@@ -55,7 +55,7 @@ public class Client {
                     + "Opção: ");
             String option = stdin.readLine();
             if (option.equals("1")) {
-                System.out.print("***REGISTAR NOVA CONTA***\n"
+                System.out.print("\n***REGISTAR NOVA CONTA***\n"
                         + "\n"
                         + "Introduza o seu username: ");
                 String uName = stdin.readLine();
@@ -76,7 +76,7 @@ public class Client {
                 }
             }
             else if(option.equals("2")) {
-                System.out.print("***INICIAR SESSÃO***\n"
+                System.out.print("\n***INICIAR SESSÃO***\n"
                         + "\n"
                         + "Introduza o seu username: ");
                 String uName = stdin.readLine();
@@ -130,6 +130,7 @@ public class Client {
                     + "3) Reservar trotinete.\n"
                     + "4) Estacionar trotinete.\n"
                     + "5) Ativar notificação.\n"
+                    + "6) Desativar notificação.\n"
                     + "\n"
                     + "0) Sair.\n"
                     + "\n"
@@ -139,9 +140,10 @@ public class Client {
             int code;
             Pair par;
             switch (option) {
-                case "0" -> // Sair da aplicação.
-                    //m.send(99, new byte[0]);
-                        exit = true;
+                case "0" -> { // Sair da aplicação.
+                    //m.send(99, new Mensagem(1)); // envia sinal de que vai se desconectar.
+                    exit = true;
+                }
                 case "1" -> { // "1) Probing de trotinetes livres -> tag(2)
                     while (true) {
                         System.out.print("Insira a localização no formato \"x y\": ");
@@ -254,6 +256,23 @@ public class Client {
                         System.out.println("Notificação do local ativada com sucesso.");
                     }
 
+                }
+                case "6" -> { // 6) Desativar notificação -> tag(7)
+                    while (true) {
+                        System.out.print("Insira a localização no formato \"x y\": ");
+                        location = stdin.readLine();
+                        if (validLocation(location)) break;
+                        System.out.println("Input inválido.");
+                    }
+                    par = parsePair(location);
+                    m.send(7, par);
+                    Mensagem response = (Mensagem) m.receive(13);
+                    if (response.equals(0)){
+                        System.out.println("Notificação do local foram desativadas com sucesso.");
+                    }
+                    else{
+                        System.out.println("Notificações nessa área não estavam ativas.");
+                    }
                 }
             }
             if (!option.equals("0")){

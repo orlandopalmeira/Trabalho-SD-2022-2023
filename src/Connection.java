@@ -47,7 +47,7 @@ public class Connection implements AutoCloseable {
         }
     }
 
-    public void send(Serializavel data) throws IOException{ // TODO talvez ver o tipo de "data" e introduzir automaticamente a tag.
+    public void send(Serializavel data) throws IOException{ // TODO talvez ver o tipo de "data" e introduzir automaticamente um novo indentificador.
 
     }
 
@@ -69,13 +69,12 @@ public class Connection implements AutoCloseable {
         try {
             rl.lock();
             tag = this.dis.readInt();
-            // TODO implementar verificações da tag para fazer o correto deserialize.
             switch (tag) {
                 case 0,1 -> {
                     AccountInfo ac = new AccountInfo();
                     data = (AccountInfo) ac.deserialize(dis);
                 }
-                case 2,3,4,6 -> {
+                case 2,3,4,6,7 -> {
                     Pair p = new Pair();
                     data = (Pair) p.deserialize(dis);
                 }

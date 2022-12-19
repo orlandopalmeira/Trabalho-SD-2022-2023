@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -10,9 +11,12 @@ public class Server {
     public static void main(String[] args) throws IOException{
         ServerSocket ss = new ServerSocket(12345);
 
-        final Accounts accounts = new Accounts();
         final Mapa mapa = new Mapa(10);
+
         System.out.println(mapa); // Printa o estado inicial do mapa.
+
+        // Gere as contas existentes.
+        final Accounts accounts = new Accounts();
 
         // Trata da geração de códigos de reserva de trotinetes.
         UniqueCode codeGenerator = new UniqueCode();
@@ -62,13 +66,11 @@ public class Server {
 
             /* The runnable that executes the processing of a client connection. */
             Runnable processing = () -> {
-                try(c){
+                String thisUsername = "";
+                HashMap<Pair, Thread> notificationThreadsMap = new HashMap<>();
+                try (c) {
 
-                    HashMap<Pair, Thread> notificationThreadsMap = new HashMap<>(); // para armazenar as threads que tratam das notificações.
-                    String thisUsername = "";
-                    //String thisUsername = "re"; // TODO to simulate logged in.
-
-                    while(true){
+                    while (true) {
                         Frame frame = c.receive();
 
                         // User registration attempt
@@ -81,8 +83,7 @@ public class Server {
                             if (flag) {
                                 thisUsername = username;
                                 c.send(13, new Mensagem(1)); // "1" é mensagem de sucesso.
-                            }
-                            else {
+                            } else {
                                 c.send(13, new Mensagem(0));// "0" é mensagem de conta ja existente.
                             }
                         }
@@ -92,29 +93,27 @@ public class Server {
                             AccountInfo acc = (AccountInfo) frame.data;
                             String username = acc.username;
                             String password = acc.password;
-                            if (accounts.isLogged(username)){
-                                c.send(13, new Mensagem(3));
-                            }
-                            else{
-                                String stored_password = accounts.getPassword(username);
-                                if (stored_password != null) {
-                                    if (stored_password.equals(password)) {
-                                        thisUsername = username;
-                                        c.send(13, new Mensagem(1)); // "1" é mensagem de sucesso.
-                                    }
-                                    else
-                                        c.send(13, new Mensagem(0)); // "0" é mensagem de password errada.
+                            String stored_password = accounts.getPassword(username);
+                            if (stored_password != null) {
+                                if (accounts.isLogged(username)) {
+                                    c.send(13, new Mensagem(3)); // "3" é mensagem que indica que alguem já esta a usar a conta.
+                                }
+                                else if (stored_password.equals(password)) {
+                                    thisUsername = username;
+                                    c.send(13, new Mensagem(1)); // "1" é mensagem de sucesso.
                                 } else
-                                    c.send(13, new Mensagem(2)); // "2" é mensagem de conta não existe.
-                            }
+                                    c.send(13, new Mensagem(0)); // "0" é mensagem de password errada.
+                            } else
+                                c.send(13, new Mensagem(2)); // "2" é mensagem de conta não existe.
+
                         }
 
                         // Probing de trotinetes à volta duma área.
-                        if (frame.tag == 2){
+                        if (frame.tag == 2) {
                             Pair data = (Pair) frame.data;
                             int x = data.getX(), y = data.getY();
-                            System.out.printf("Probing de trotinetes em (%d,%d).%n", x,y); // LOG
-                            PairList ls = mapa.trotinetesArround(x,y);
+                            System.out.printf("Probing de trotinetes em (%d,%d).%n", x, y); // LOG
+                            PairList ls = mapa.trotinetesArround(x, y);
                             c.send(11, ls);
                         }
                         // Probing de recompensas com origem numa localizacao.
@@ -122,22 +121,22 @@ public class Server {
                             Pair data = (Pair) frame.data;
                             int x = data.getX();
                             int y = data.getY();
-                            System.out.printf("Probing de recompensas em (%d,%d).%n", x,y); // LOG
-                            RecompensaList rs = mapa.getRewardsWithOrigin(x,y);
+                            System.out.printf("Probing de recompensas em (%d,%d).%n", x, y); // LOG
+                            RecompensaList rs = mapa.getRewardsWithOrigin(x, y);
                             c.send(12, rs);
                         }
                         // Reservar trotinete
-                        else if (frame.tag == 4){
+                        else if (frame.tag == 4) {
                             Pair data = (Pair) frame.data;
                             int x = data.getX();
                             int y = data.getY();
-                            System.out.printf("Pedido de reserva de trotinete em (%d,%d).%n", x,y); // LOG
-                            List<Pair> lista = mapa.trotinetesArround(x,y);
-                            if(lista.size() > 0){ // se houver trotinetes disponiveis.
+                            System.out.printf("Pedido de reserva de trotinete em (%d,%d).%n", x, y); // LOG
+                            List<Pair> lista = mapa.trotinetesArround(x, y);
+                            if (lista.size() > 0) { // se houver trotinetes disponiveis.
                                 Pair closest = lista.get(0);
                                 mapa.retiraTrotineta(closest);
                                 rewardslock.writeLock().lock();
-                                try{
+                                try {
                                     rewardsCond.signalAll(); // sinaliza uma alteração no mapa para o gerador de recompensas. todo talvez passar so a signal.
                                 } finally {
                                     rewardslock.writeLock().unlock();
@@ -147,79 +146,78 @@ public class Server {
                                 CodigoReserva cr = new CodigoReserva(myCode, closest);
                                 trotinetesReservadas.add(cr, thisUsername);
                                 c.send(14, cr);
-                            }
-                            else{
+                            } else {
                                 // Enviar codigo de insucesso.
                                 CodigoReserva cr = new CodigoReserva(-1);
                                 c.send(frame.tag, cr);
                             }
                         }
                         // Estacionar trotinete
-                        else if (frame.tag == 5){
+                        else if (frame.tag == 5) {
                             // todo Falta lógica de códigos de reserva.
                             CodigoReserva cr = (CodigoReserva) frame.data;
                             int x = cr.getLocalizacao().getX();
                             int y = cr.getLocalizacao().getY();
-                            System.out.printf("Pedido de estacionamento de trotinete em (%d,%d).%n", x,y); // LOG
-                            if (!mapa.validPos(x,y)){
+                            System.out.printf("Pedido de estacionamento de trotinete em (%d,%d).%n", x, y); // LOG
+                            if (!mapa.validPos(x, y)) {
                                 c.send(15, new InfoViagem());
                                 continue;
                             }
                             InfoViagem infoviagem = trotinetesReservadas.getInfoViagem(cr, thisUsername);
                             boolean flag = false;
-                            if(infoviagem.isSuccessful()){
+                            if (infoviagem.isSuccessful()) {
                                 // Verificação de recompensas
                                 RecompensaList rl = mapa.getRewardsIn(infoviagem.getOrigem());
                                 Recompensa situation = new Recompensa(infoviagem.getOrigem(), infoviagem.getDestino());
-                                if (rl.contains(situation)){
+                                if (rl.contains(situation)) {
                                     infoviagem.setRecompensa(situation);
                                 }
                                 // Estacionamento de trotinete no mapa.
-                                flag = mapa.addTrotineta(x,y);
+                                flag = mapa.addTrotineta(x, y);
                             }
-                            if(flag){
+                            if (flag) {
                                 rewardslock.writeLock().lock();
                                 rewardsCond.signalAll(); // sinaliza uma alteração no mapa para o gerador de recompensas.
                                 rewardslock.writeLock().unlock();
                                 // FIXME Envio de codigo de sucesso.
                                 c.send(15, infoviagem);
-                            }
-                            else{
+                            } else {
                                 c.send(15, new InfoViagem());
                             }
                         }
                         // Pedido de notificacao
-                        else if (frame.tag == 6){
+                        else if (frame.tag == 6) {
                             Pair data = (Pair) frame.data;
                             int x = data.getX();
                             int y = data.getY();
-                            System.out.printf("Pedido de notificação de recompensas na área de (%d,%d).%n", x,y); // LOG
-                            Pair watchedLocal = new Pair(x,y);
-                            if (notificationThreadsMap.containsKey(watchedLocal)){
+                            System.out.printf("Pedido de notificação de recompensas na área de (%d,%d) por %s.%n", x, y, thisUsername); // LOG
+                            Pair watchedLocal = new Pair(x, y);
+                            if (notificationThreadsMap.containsKey(watchedLocal)) {
                                 c.send(13, new Mensagem(0));
                                 continue;
                             }
                             Thread sendNotifications = new Thread(() -> {
                                 try {
-                                    while(true){
+                                    while (true) {
                                         boolean flag = true;
-                                        RecompensaList newl = null, ant = mapa.getRewardsWithOrigin(watchedLocal.getX(),watchedLocal.getY());
-                                        while(flag){
+                                        RecompensaList newl = null, ant = mapa.getRewardsWithOrigin(watchedLocal.getX(), watchedLocal.getY());
+                                        while (flag) {
                                             Localizacao l = mapa.getLocalizacao(watchedLocal);
                                             l.lock.writeLock().lock();
-                                            try{
+                                            try {
                                                 l.cond.await();
                                             } finally {
                                                 l.lock.writeLock().unlock();
                                             }
-                                            newl = mapa.getRewardsWithOrigin(watchedLocal.getX(),watchedLocal.getY());
+                                            newl = mapa.getRewardsWithOrigin(watchedLocal.getX(), watchedLocal.getY());
                                             flag = ant.containsAll(newl);
                                         }
                                         newl.removeAll(ant);
                                         c.send(30, newl);
                                     }
                                 } catch (Exception e) {
-                                    throw new RuntimeException(e); // TODO - talvez eliminar este throw de excecao.
+                                    //throw new RuntimeException(e); // TODO - talvez eliminar este throw de excecao.
+                                    System.out.println("Notificação morta");
                                 }
                             });
                             notificationThreadsMap.put(watchedLocal, sendNotifications);
@@ -227,12 +225,38 @@ public class Server {
                             // Envio de mensagem de pedido de notificação bem sucedido.
                             c.send(13, new Mensagem(1));
                         }
+                        // Desativação de notificação
+                        else if (frame.tag == 7) {
+                            Pair data = (Pair) frame.data;
+                            int x = data.getX();
+                            int y = data.getY();
+                            System.out.printf("Desativação de notificação de recompensas na área de (%d,%d) por %s.%n", x, y, thisUsername); // LOG
+                            //Pair watchedLocal = new Pair(x,y);
+                            if (notificationThreadsMap.containsKey(data)) {
+                                Thread toKill = notificationThreadsMap.get(data);
+                                toKill.interrupt();
+                                notificationThreadsMap.remove(data);
+                                c.send(13, new Mensagem(0));
+                            } else {
+                                c.send(13, new Mensagem(1));
+                            }
+                        }
+                        // FIXme - testar melhor saida com a exception. Caso funcione direito pode se remover isto.
+                        // Deslogar o cliente da aplicação.
+                        /*
+                        else if (frame.tag == 99) {
+                            accounts.logOutUser(thisUsername);
+                            notificationThreadsMap.forEach((k, v) -> v.interrupt()); // interrompe as notificações que estão ativas.
+                        }
+                         */
                         System.out.println(mapa);
 
                     }
-                } catch (IOException exc){
-                    //System.out.println(exc); // FIXME remove
-                    //throw exc;
+                } catch (IOException exc) {
+                    // Quando um cliente se desconecta do servidor.
+                    System.out.printf("Log-out do utilizador %s.\n", thisUsername);
+                    accounts.logOutUser(thisUsername);
+                    notificationThreadsMap.forEach((k, v) -> v.interrupt()); // interrompe as notificações que estão ativas.
                 }
             };
             new Thread(processing).start();

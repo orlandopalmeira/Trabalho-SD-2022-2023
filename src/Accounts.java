@@ -3,7 +3,7 @@ import java.util.HashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
- * Class that stores information about accounts.
+ * Class that stores information about accounts. // FIXME - remove serializable methods and interface implementation.
  */
 public class Accounts implements Serializable {
 
@@ -21,20 +21,37 @@ public class Accounts implements Serializable {
             this.isLogged = isLogged;
         }
     }
+    private ReentrantReadWriteLock l = new ReentrantReadWriteLock();
     private final HashMap<String, PassAndIslogged> contas;
-    public ReentrantReadWriteLock l = new ReentrantReadWriteLock();
 
     public Accounts() {
         this.contas = new HashMap<>();
-        //this.contas.put("re", new PassAndIslogged("re")); // TODO to eliminate
     }
 
+    /**
+     * Verifies if a user with that username is logged in the system.
+     * @param username Name of the user.
+     * @return True if he´s logged, False otherwise.
+     */
     public boolean isLogged(String username){
         l.readLock().lock();
         try{
             return contas.get(username).isLogged;
         } finally {
             l.readLock().unlock();
+        }
+    }
+
+    /**
+     * Logs out a user when he disconnects from the server.
+     * @param username Name of the user.
+     */
+    public void logOutUser(String username){
+        l.writeLock().lock();
+        try{
+            contas.get(username).isLogged = false;
+        } finally {
+            l.writeLock().unlock();
         }
     }
 
@@ -46,7 +63,10 @@ public class Accounts implements Serializable {
     public String getPassword(String username) {
         l.readLock().lock();
         try{
-            return contas.get(username).password;
+            if (accountExists(username)){
+                return contas.get(username).password;
+            }
+            return null;
         } finally {
             l.readLock().unlock();
         }
@@ -81,7 +101,7 @@ public class Accounts implements Serializable {
 
 
     /**
-     * Serializing methods that may not be used.
+     * Serializing methods não são usados.
      */
     public void serialize(String filepath) throws IOException {
         FileOutputStream fos = new FileOutputStream(filepath);
