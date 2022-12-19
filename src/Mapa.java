@@ -382,8 +382,8 @@ public class Mapa {
      * Função que retorna todas as recompensas em vigor naquele determinado mapa.
      * O critério de recompensa atual é: o destino não tem nenhuma trotinete num raio de 2 unidades, e a origem tem que ter uma trotineta e no seu raio de 2 unidades também existir, pelo menos, uma outra trotineta.
      */
-    public HashSet<Recompensa> getRewards(){
-        HashSet<Recompensa> rewards = new HashSet<Recompensa>();
+    public RecompensaList getRewards(){
+        RecompensaList rewards = new RecompensaList();
 
         lockAllLocais();
         try {

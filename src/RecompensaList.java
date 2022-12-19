@@ -1,19 +1,34 @@
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 public class RecompensaList extends HashSet<Recompensa> implements Serializavel{
 
-    @Override // talvez alterar para agrupar recompensas por destino e enviar os respetivos destinos.
+    @Override
     public String toString(){
-        List<Recompensa> sorted_ = this.stream().sorted((r1, r2) -> {return r2.reward - r1.reward;}).toList();
+        // Agrupa recompensas por origem(NOT IMPLEMENTED).
         StringBuilder res = new StringBuilder();
+        HashMap<Pair, ArrayList<Recompensa>> grouped = new HashMap<>();
+        for (Recompensa r: this){
+            if (!grouped.containsKey(r.origem)){
+                grouped.put(r.origem, new ArrayList<>());
+            }
+            grouped.get(r.origem).add(r);
+        }
+        grouped.forEach((k, v) -> {
+            res.append("\nCom origem ").append(k).append(":\n");
+            List<Recompensa> sorted_ = v.stream().sorted((r1, r2) -> {return r2.reward - r1.reward;}).toList();
+            for (Recompensa r: sorted_){
+                res.append(r).append("\n");
+            }
+        });
+        /*
+        List<Recompensa> sorted_ = this.stream().sorted((r1, r2) -> {return r2.reward - r1.reward;}).toList();
         for(Recompensa r : sorted_){
             res.append(r).append("\n");
         }
+         */
         return res.toString();
     }
 

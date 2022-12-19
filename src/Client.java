@@ -1,6 +1,8 @@
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.net.ConnectException;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.concurrent.locks.ReentrantLock;
 
 
@@ -33,7 +35,14 @@ public class Client {
     }
 
     public static void main(String[] args) throws Exception {
-        Socket s = new Socket("localhost", 12345);
+        Socket s = null;
+        try{
+            s = new Socket("localhost", 12345);
+        } catch (ConnectException exc){
+            System.out.println("Servidor não está ativo!");
+            System.out.println("A terminar execução...");
+            System.exit(1);
+        }
         Demultiplexer m = new Demultiplexer(new Connection(s));
         //m.start();
 
@@ -43,8 +52,9 @@ public class Client {
         ReentrantLock printLock = new ReentrantLock(); // lock para prints de notificações não atropelarem o resto das funcionalidades.
 
         String username = null;
-        //username = "re"; //  TODO remove in final version. (Simula login já efetuado)
         boolean hasReservedTrotinete = false;
+        ArrayList<Pair> notificacoesAtivas = new ArrayList<>(); // guarda as localizações em que o cliente tem notificações ativas.
+
         while (username == null) {
             System.out.print("*** LOGIN ***\n"
                     + "\n"
@@ -62,7 +72,6 @@ public class Client {
                 System.out.print("Introduza a sua palavra-passe: ");
                 String password = stdin.readLine();
                 AccountInfo acc = new AccountInfo(uName, password);
-                //String data = String.format("%s %s", uName, password);
                 m.send(0, acc); // User registration attempt. tag = (0)
                 Mensagem response = (Mensagem) m.receive(13);
                 // Recebe 1 como sinal de sucesso.
@@ -72,7 +81,7 @@ public class Client {
                 }
                 // Recebe 0 como sinal de insucesso (Username ja registado).
                 else{
-                    System.out.printf("\nErro - username (%s) já pertence a uma conta.%n", uName);
+                    System.out.printf("\nErro - username \"%s\" já pertence a uma conta.%n", uName);
                 }
             }
             else if(option.equals("2")) {
@@ -83,7 +92,6 @@ public class Client {
                 System.out.print("Introduza a sua palavra-passe: ");
                 String password = stdin.readLine();
                 AccountInfo acc = new AccountInfo(uName, password);
-                //String data = String.format("%s %s", uName, password);
                 // User log-in attempt.  tag = (1)
                 m.send(1, acc);
                 Mensagem response = (Mensagem) m.receive(13);
@@ -97,7 +105,6 @@ public class Client {
                     System.out.println("\nConta já está a ser utilizada.\n");
                 else
                     System.out.println("\nConta inexistente.\n");
-
             }
         }
 
@@ -108,11 +115,12 @@ public class Client {
                 try {
                     recompensas = (RecompensaList) m.receive(30); // tag(30) usada para notificações.
                 } catch (Exception ignored) {
-                    System.exit(0);
+                    System.out.println("Conexão perdida com o servidor.");
+                    System.exit(1);
                 }
                 printLock.lock();
                 try {
-                    System.out.println("\n(Notificação) Surgiu a seguinte recompensa: " + recompensas);
+                    System.out.println("\n(Notificação) Surgiu a seguinte recompensa:\n" + recompensas);
                 } finally {
                     printLock.unlock();
                 }
@@ -130,7 +138,7 @@ public class Client {
                     + "3) Reservar trotinete.\n"
                     + "4) Estacionar trotinete.\n"
                     + "5) Ativar notificação.\n"
-                    + "6) Desativar notificação.\n"
+                    + (notificacoesAtivas.size() > 0 ? "6) Desativar notificação.\n" : "")
                     + "\n"
                     + "0) Sair.\n"
                     + "\n"
@@ -141,7 +149,6 @@ public class Client {
             Pair par;
             switch (option) {
                 case "0" -> { // Sair da aplicação.
-                    //m.send(99, new Mensagem(1)); // envia sinal de que vai se desconectar.
                     exit = true;
                 }
                 case "1" -> { // "1) Probing de trotinetes livres -> tag(2)
@@ -254,11 +261,13 @@ public class Client {
                     }
                     else{
                         System.out.println("Notificação do local ativada com sucesso.");
+                        notificacoesAtivas.add(par);
                     }
 
                 }
                 case "6" -> { // 6) Desativar notificação -> tag(7)
                     while (true) {
+                        System.out.println("Tem as seguintes posições com notificações ativas:\n" + notificacoesAtivas);
                         System.out.print("Insira a localização no formato \"x y\": ");
                         location = stdin.readLine();
                         if (validLocation(location)) break;
@@ -269,6 +278,7 @@ public class Client {
                     Mensagem response = (Mensagem) m.receive(13);
                     if (response.equals(0)){
                         System.out.println("Notificação do local foram desativadas com sucesso.");
+                        notificacoesAtivas.remove(par);
                     }
                     else{
                         System.out.println("Notificações nessa área não estavam ativas.");

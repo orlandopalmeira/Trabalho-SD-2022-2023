@@ -27,7 +27,7 @@ public class Server {
         // Estruturas auxiliares de suporte ao mecanismo de geração de recompensas.
         final ReentrantReadWriteLock rewardslock = new ReentrantReadWriteLock(); // TODO talvez pensar se um simples lock seria melhor.
         final Condition rewardsCond = rewardslock.writeLock().newCondition();
-        final HashSet<Recompensa> recompensas = mapa.getRewards();
+        final RecompensaList recompensas = mapa.getRewards();
 
         // Geração de recompensas em background.
         Thread evalRewards = new Thread(() -> {
@@ -75,10 +75,10 @@ public class Server {
 
                         // User registration attempt
                         if (frame.tag == 0) {
-                            System.out.println("User registration attempt."); // pequeno log.
                             AccountInfo acc = (AccountInfo) frame.data;
                             String username = acc.username;
                             String password = acc.password;
+                            System.out.printf("User %s registration attempt.\n", username); // LOG
                             boolean flag = accounts.addAccount(username, password);
                             if (flag) {
                                 thisUsername = username;
@@ -89,10 +89,10 @@ public class Server {
                         }
                         // User log-in attempt.
                         else if (frame.tag == 1) {
-                            System.out.println("User log-in attempt."); // pequeno log.
                             AccountInfo acc = (AccountInfo) frame.data;
                             String username = acc.username;
                             String password = acc.password;
+                            System.out.printf("User %s log-in attempt.\n", username); // LOG
                             String stored_password = accounts.getPassword(username);
                             if (stored_password != null) {
                                 if (accounts.isLogged(username)) {
@@ -154,7 +154,6 @@ public class Server {
                         }
                         // Estacionar trotinete
                         else if (frame.tag == 5) {
-                            // todo Falta lógica de códigos de reserva.
                             CodigoReserva cr = (CodigoReserva) frame.data;
                             int x = cr.getLocalizacao().getX();
                             int y = cr.getLocalizacao().getY();
@@ -179,7 +178,6 @@ public class Server {
                                 rewardslock.writeLock().lock();
                                 rewardsCond.signalAll(); // sinaliza uma alteração no mapa para o gerador de recompensas.
                                 rewardslock.writeLock().unlock();
-                                // FIXME Envio de codigo de sucesso.
                                 c.send(15, infoviagem);
                             } else {
                                 c.send(15, new InfoViagem());
@@ -187,11 +185,8 @@ public class Server {
                         }
                         // Pedido de notificacao
                         else if (frame.tag == 6) {
-                            Pair data = (Pair) frame.data;
-                            int x = data.getX();
-                            int y = data.getY();
-                            System.out.printf("Pedido de notificação de recompensas na área de (%d,%d) por %s.%n", x, y, thisUsername); // LOG
-                            Pair watchedLocal = new Pair(x, y);
+                            Pair watchedLocal = (Pair) frame.data;
+                            System.out.printf("Pedido de notificação de recompensas na área de %s por %s.%n", watchedLocal, thisUsername); // LOG
                             if (notificationThreadsMap.containsKey(watchedLocal)) {
                                 c.send(13, new Mensagem(0));
                                 continue;
@@ -216,8 +211,7 @@ public class Server {
                                         c.send(30, newl);
                                     }
                                 } catch (Exception e) {
-                                    //throw new RuntimeException(e); // TODO - talvez eliminar este throw de excecao.
-                                    System.out.println("Notificação morta");
+                                    System.out.printf("Notificação do local %s cancelada.\n", watchedLocal);
                                 }
                             });
                             notificationThreadsMap.put(watchedLocal, sendNotifications);
@@ -231,7 +225,6 @@ public class Server {
                             int x = data.getX();
                             int y = data.getY();
                             System.out.printf("Desativação de notificação de recompensas na área de (%d,%d) por %s.%n", x, y, thisUsername); // LOG
-                            //Pair watchedLocal = new Pair(x,y);
                             if (notificationThreadsMap.containsKey(data)) {
                                 Thread toKill = notificationThreadsMap.get(data);
                                 toKill.interrupt();
@@ -241,16 +234,7 @@ public class Server {
                                 c.send(13, new Mensagem(1));
                             }
                         }
-                        // FIXme - testar melhor saida com a exception. Caso funcione direito pode se remover isto.
-                        // Deslogar o cliente da aplicação.
-                        /*
-                        else if (frame.tag == 99) {
-                            accounts.logOutUser(thisUsername);
-                            notificationThreadsMap.forEach((k, v) -> v.interrupt()); // interrompe as notificações que estão ativas.
-                        }
-                         */
                         System.out.println(mapa);
-
                     }
                 } catch (IOException exc) {
                     // Quando um cliente se desconecta do servidor.

@@ -65,13 +65,14 @@ public class InfoViagem implements Serializavel{
             return "Insucesso no estacionamento.";
         }
         StringBuilder sb = new StringBuilder();
-        sb.append("Informação da viagem\n");
+        sb.append("\n***** Informação da viagem *****\n");
         sb.append("Duração: ").append(duracao).append("\n");
         sb.append("Distância: ").append(distancia).append("\n");
         sb.append("Custo: ").append(custo).append("\n");
         if (recompensa != null){
             sb.append("Recompensa: ").append(recompensa).append("\n");
         }
+        sb.append("**********************************\n");
         return sb.toString();
     }
 
