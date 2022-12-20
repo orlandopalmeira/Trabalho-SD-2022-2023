@@ -1,4 +1,5 @@
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ConnectException;
 import java.net.Socket;
@@ -34,6 +35,23 @@ public class Client {
         return new Pair(x,y);
     }
 
+    /**
+     * Pede do standard input informação sobre um Pair no formato "x y", retornando o Pair processado.
+     * @param stdin Buffered Reader do stdin.
+     * @return Retorna o objeto Pair obtido pelo standard input.
+     * @throws IOException
+     */
+    public static Pair inputPair (BufferedReader stdin) throws IOException {
+        String location;
+        while (true) {
+            System.out.print("Insira a localização no formato \"x y\": ");
+            location = stdin.readLine();
+            if (validLocation(location)) break;
+            System.out.println("Input inválido.");
+        }
+        return parsePair(location);
+    }
+
     public static void main(String[] args) throws Exception {
         Socket s = null;
         try{
@@ -44,7 +62,6 @@ public class Client {
             System.exit(1);
         }
         Demultiplexer m = new Demultiplexer(new Connection(s));
-        //m.start();
 
         BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
 
@@ -152,13 +169,7 @@ public class Client {
                     exit = true;
                 }
                 case "1" -> { // "1) Probing de trotinetes livres -> tag(2)
-                    while (true) {
-                        System.out.print("Insira a localização no formato \"x y\": ");
-                        location = stdin.readLine();
-                        if (validLocation(location)) break;
-                        System.out.println("Input inválido.");
-                    }
-                    par = parsePair(location);
+                    par = inputPair(stdin);
                     m.send(2, par);
                     PairList trotinetes = (PairList) m.receive(0);
                     if (trotinetes.size() == 0)
@@ -169,13 +180,7 @@ public class Client {
                     }
                 }
                 case "2" -> { // 2) Probing de Recompensas -> tag(3)
-                    while (true) {
-                        System.out.print("Insira a localização no formato \"x y\": ");
-                        location = stdin.readLine();
-                        if (validLocation(location)) break;
-                        System.out.println("Input inválido.");
-                    }
-                    par = parsePair(location);
+                    par = inputPair(stdin);
                     m.send(3, par);
                     RecompensaList recompensas = (RecompensaList) m.receive(0);
                     if (recompensas.size() == 0)
@@ -192,13 +197,7 @@ public class Client {
                         stdin.readLine();
                         continue;
                     }
-                    while (true) {
-                        System.out.print("Insira a localização no formato \"x y\": ");
-                        location = stdin.readLine();
-                        if (validLocation(location)) break;
-                        System.out.println("Input inválido.");
-                    }
-                    par = parsePair(location);
+                    par = inputPair(stdin);
                     m.send(4, par);
                     CodigoReserva myCode = (CodigoReserva) m.receive(0);
 
@@ -218,12 +217,7 @@ public class Client {
                         stdin.readLine();
                         continue;
                     }
-                    while (true) {
-                        System.out.print("Insira a localização no formato \"x y\": ");
-                        location = stdin.readLine();
-                        if (validLocation(location)) break;
-                        System.out.println("Input inválido.");
-                    }
+                    par = inputPair(stdin);
                     while (true){
                         System.out.print("Insira o código de reserva: ");
                         try{
@@ -237,7 +231,6 @@ public class Client {
                         }
                         break;
                     }
-                    par = parsePair(location);
                     CodigoReserva cr = new CodigoReserva(code, par);
                     m.send(5, cr);
                     InfoViagem infoViagem = (InfoViagem) m.receive(0);
@@ -247,17 +240,11 @@ public class Client {
                     }
                 }
                 case "5" -> { // 5) Ativar notificação -> tag(6)
-                    while (true) {
-                        System.out.print("Insira a localização no formato \"x y\": ");
-                        location = stdin.readLine();
-                        if (validLocation(location)) break;
-                        System.out.println("Input inválido.");
-                    }
-                    par = parsePair(location);
+                    par = inputPair(stdin);
                     m.send(6, par);
                     Mensagem response = (Mensagem) m.receive(0);
                     if (response.equals(0)){
-                        System.out.println("Notificações sobre esta localização já estavam ativadas.");
+                        System.out.println("Ativação de notificação inválida.");
                     }
                     else{
                         System.out.println("Notificação do local ativada com sucesso.");
@@ -266,14 +253,8 @@ public class Client {
 
                 }
                 case "6" -> { // 6) Desativar notificação -> tag(7)
-                    while (true) {
-                        System.out.println("Tem as seguintes posições com notificações ativas:\n" + notificacoesAtivas);
-                        System.out.print("Insira a localização no formato \"x y\": ");
-                        location = stdin.readLine();
-                        if (validLocation(location)) break;
-                        System.out.println("Input inválido.");
-                    }
-                    par = parsePair(location);
+                    System.out.println("Tem as seguintes posições com notificações ativas:\n" + notificacoesAtivas);
+                    par = inputPair(stdin);
                     m.send(7, par);
                     Mensagem response = (Mensagem) m.receive(0);
                     if (response.equals(0)){
@@ -281,7 +262,7 @@ public class Client {
                         notificacoesAtivas.remove(par);
                     }
                     else{
-                        System.out.println("Notificações nessa área não estavam ativas.");
+                        System.out.println("Cancelamento de notificações inválido.");
                     }
                 }
             }

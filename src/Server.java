@@ -187,7 +187,7 @@ public class Server {
                         else if (frame.tag == 6) {
                             Pair watchedLocal = (Pair) frame.data;
                             System.out.printf("Pedido de notificação de recompensas na área de %s por %s.%n", watchedLocal, thisUsername); // LOG
-                            if (notificationThreadsMap.containsKey(watchedLocal)) {
+                            if (!mapa.validPos(watchedLocal) || notificationThreadsMap.containsKey(watchedLocal)) {
                                 c.send(0, new Mensagem(0));
                                 continue;
                             }
