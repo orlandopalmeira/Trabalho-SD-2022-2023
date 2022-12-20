@@ -82,9 +82,9 @@ public class Server {
                             boolean flag = accounts.addAccount(username, password);
                             if (flag) {
                                 thisUsername = username;
-                                c.send(13, new Mensagem(1)); // "1" é mensagem de sucesso.
+                                c.send(0, new Mensagem(1)); // "1" é mensagem de sucesso.
                             } else {
-                                c.send(13, new Mensagem(0));// "0" é mensagem de conta ja existente.
+                                c.send(0, new Mensagem(0));// "0" é mensagem de conta ja existente.
                             }
                         }
                         // User log-in attempt.
@@ -96,15 +96,15 @@ public class Server {
                             String stored_password = accounts.getPassword(username);
                             if (stored_password != null) {
                                 if (accounts.isLogged(username)) {
-                                    c.send(13, new Mensagem(3)); // "3" é mensagem que indica que alguem já esta a usar a conta.
+                                    c.send(0, new Mensagem(3)); // "3" é mensagem que indica que alguem já esta a usar a conta.
                                 }
                                 else if (stored_password.equals(password)) {
                                     thisUsername = username;
-                                    c.send(13, new Mensagem(1)); // "1" é mensagem de sucesso.
+                                    c.send(0, new Mensagem(1)); // "1" é mensagem de sucesso.
                                 } else
-                                    c.send(13, new Mensagem(0)); // "0" é mensagem de password errada.
+                                    c.send(0, new Mensagem(0)); // "0" é mensagem de password errada.
                             } else
-                                c.send(13, new Mensagem(2)); // "2" é mensagem de conta não existe.
+                                c.send(0, new Mensagem(2)); // "2" é mensagem de conta não existe.
 
                         }
 
@@ -114,7 +114,7 @@ public class Server {
                             int x = data.getX(), y = data.getY();
                             System.out.printf("Probing de trotinetes em (%d,%d).%n", x, y); // LOG
                             PairList ls = mapa.trotinetesArround(x, y);
-                            c.send(11, ls);
+                            c.send(0, ls);
                         }
                         // Probing de recompensas com origem numa localizacao.
                         else if (frame.tag == 3) {
@@ -123,7 +123,7 @@ public class Server {
                             int y = data.getY();
                             System.out.printf("Probing de recompensas em (%d,%d).%n", x, y); // LOG
                             RecompensaList rs = mapa.getRewardsWithOrigin(x, y);
-                            c.send(12, rs);
+                            c.send(0, rs);
                         }
                         // Reservar trotinete
                         else if (frame.tag == 4) {
@@ -145,11 +145,11 @@ public class Server {
                                 int myCode = codeGenerator.getCode();
                                 CodigoReserva cr = new CodigoReserva(myCode, closest);
                                 trotinetesReservadas.add(cr, thisUsername);
-                                c.send(14, cr);
+                                c.send(0, cr);
                             } else {
                                 // Enviar codigo de insucesso.
                                 CodigoReserva cr = new CodigoReserva(-1);
-                                c.send(frame.tag, cr);
+                                c.send(0, cr);
                             }
                         }
                         // Estacionar trotinete
@@ -159,10 +159,10 @@ public class Server {
                             int y = cr.getLocalizacao().getY();
                             System.out.printf("Pedido de estacionamento de trotinete em (%d,%d).%n", x, y); // LOG
                             if (!mapa.validPos(x, y)) {
-                                c.send(15, new InfoViagem());
+                                c.send(0, new InfoViagem());
                                 continue;
                             }
-                            InfoViagem infoviagem = trotinetesReservadas.getInfoViagem(cr, thisUsername);
+                            InfoViagem infoviagem = trotinetesReservadas.getInfoViagem(cr, thisUsername); // Verifica na informação sobre trotinetes reservadas.
                             boolean flag = false;
                             if (infoviagem.isSuccessful()) {
                                 // Verificação de recompensas
@@ -178,9 +178,9 @@ public class Server {
                                 rewardslock.writeLock().lock();
                                 rewardsCond.signalAll(); // sinaliza uma alteração no mapa para o gerador de recompensas.
                                 rewardslock.writeLock().unlock();
-                                c.send(15, infoviagem);
+                                c.send(0, infoviagem);
                             } else {
-                                c.send(15, new InfoViagem());
+                                c.send(0, new InfoViagem());
                             }
                         }
                         // Pedido de notificacao
@@ -188,7 +188,7 @@ public class Server {
                             Pair watchedLocal = (Pair) frame.data;
                             System.out.printf("Pedido de notificação de recompensas na área de %s por %s.%n", watchedLocal, thisUsername); // LOG
                             if (notificationThreadsMap.containsKey(watchedLocal)) {
-                                c.send(13, new Mensagem(0));
+                                c.send(0, new Mensagem(0));
                                 continue;
                             }
                             Thread sendNotifications = new Thread(() -> {
@@ -217,7 +217,7 @@ public class Server {
                             notificationThreadsMap.put(watchedLocal, sendNotifications);
                             sendNotifications.start();
                             // Envio de mensagem de pedido de notificação bem sucedido.
-                            c.send(13, new Mensagem(1));
+                            c.send(0, new Mensagem(1));
                         }
                         // Desativação de notificação
                         else if (frame.tag == 7) {
@@ -229,9 +229,9 @@ public class Server {
                                 Thread toKill = notificationThreadsMap.get(data);
                                 toKill.interrupt();
                                 notificationThreadsMap.remove(data);
-                                c.send(13, new Mensagem(0));
+                                c.send(0, new Mensagem(0));
                             } else {
-                                c.send(13, new Mensagem(1));
+                                c.send(0, new Mensagem(1));
                             }
                         }
                         System.out.println(mapa);

@@ -56,7 +56,7 @@ public class Client {
         ArrayList<Pair> notificacoesAtivas = new ArrayList<>(); // guarda as localizações em que o cliente tem notificações ativas.
 
         while (username == null) {
-            System.out.print("*** LOGIN ***\n"
+            System.out.print("\n*** LOGIN ***\n"
                     + "\n"
                     + "Pretende:\n"
                     + "1) Registar nova conta.\n"
@@ -73,7 +73,7 @@ public class Client {
                 String password = stdin.readLine();
                 AccountInfo acc = new AccountInfo(uName, password);
                 m.send(0, acc); // User registration attempt. tag = (0)
-                Mensagem response = (Mensagem) m.receive(13);
+                Mensagem response = (Mensagem) m.receive(0);
                 // Recebe 1 como sinal de sucesso.
                 if(response.equals(1)) {
                     username = uName;
@@ -94,7 +94,7 @@ public class Client {
                 AccountInfo acc = new AccountInfo(uName, password);
                 // User log-in attempt.  tag = (1)
                 m.send(1, acc);
-                Mensagem response = (Mensagem) m.receive(13);
+                Mensagem response = (Mensagem) m.receive(0);
                 if(response.equals(1)) {
                     username = uName;
                     System.out.printf("\nBem-vindo %s!%n", uName);
@@ -160,7 +160,7 @@ public class Client {
                     }
                     par = parsePair(location);
                     m.send(2, par);
-                    PairList trotinetes = (PairList) m.receive(11);
+                    PairList trotinetes = (PairList) m.receive(0);
                     if (trotinetes.size() == 0)
                         System.out.println("Não há trotinetes na área.");
                     else {
@@ -177,7 +177,7 @@ public class Client {
                     }
                     par = parsePair(location);
                     m.send(3, par);
-                    RecompensaList recompensas = (RecompensaList) m.receive(12);
+                    RecompensaList recompensas = (RecompensaList) m.receive(0);
                     if (recompensas.size() == 0)
                         System.out.println("\nNão há recompensas na área.\n");
                     else {
@@ -200,7 +200,7 @@ public class Client {
                     }
                     par = parsePair(location);
                     m.send(4, par);
-                    CodigoReserva myCode = (CodigoReserva) m.receive(14);
+                    CodigoReserva myCode = (CodigoReserva) m.receive(0);
 
                     if (myCode.isSuccess()){
                         System.out.println("Reservada trotinete na posição " + myCode.getLocalizacao() + ", com o código " + myCode.getCodigo() + ".");
@@ -240,7 +240,7 @@ public class Client {
                     par = parsePair(location);
                     CodigoReserva cr = new CodigoReserva(code, par);
                     m.send(5, cr);
-                    InfoViagem infoViagem = (InfoViagem) m.receive(15);
+                    InfoViagem infoViagem = (InfoViagem) m.receive(0);
                     System.out.println(infoViagem);
                     if (infoViagem.isSuccessful()){
                         hasReservedTrotinete = false;
@@ -255,7 +255,7 @@ public class Client {
                     }
                     par = parsePair(location);
                     m.send(6, par);
-                    Mensagem response = (Mensagem) m.receive(13);
+                    Mensagem response = (Mensagem) m.receive(0);
                     if (response.equals(0)){
                         System.out.println("Notificações sobre esta localização já estavam ativadas.");
                     }
@@ -275,7 +275,7 @@ public class Client {
                     }
                     par = parsePair(location);
                     m.send(7, par);
-                    Mensagem response = (Mensagem) m.receive(13);
+                    Mensagem response = (Mensagem) m.receive(0);
                     if (response.equals(0)){
                         System.out.println("Notificação do local foram desativadas com sucesso.");
                         notificacoesAtivas.remove(par);
