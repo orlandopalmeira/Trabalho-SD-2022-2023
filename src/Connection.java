@@ -19,27 +19,6 @@ public class Connection implements AutoCloseable {
         this.dos = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
     }
 
-
-    public void send(Frame frame) throws IOException {
-        int tag = frame.tag;
-        Serializavel ser = frame.data;
-        send(tag, ser);
-    }
-
-    /**
-     * Tag 2: Pair <br>
-     * Tag 3: Pair <br>
-     * Tag 4: Pair <br>
-     * Tag 5: CodigoReserva <br>
-     * Tag 6: Pair <br>
-     * Tag 7: Pair <br>
-     * Tag 11: PairList <br>
-     * Tag 12: RecompensaList <br>
-     * Tag 13: Mensagem <br>
-     * Tag 14: CodigoReserva <br>
-     * Tag 15: InfoViagem <br>
-     * Tag 30: RecompensaList (Notificações) <br>
-     */
     public void sendOld(int tag, Serializavel data) throws IOException {
         try {
             wl.lock();
@@ -50,6 +29,13 @@ public class Connection implements AutoCloseable {
         finally {
             wl.unlock();
         }
+    }
+
+
+    public void send(Frame frame) throws IOException {
+        int tag = frame.tag;
+        Serializavel ser = frame.data;
+        send(tag, ser);
     }
 
     public void send(int tag, Serializavel data) throws IOException{
@@ -63,6 +49,7 @@ public class Connection implements AutoCloseable {
             wl.unlock();
         }
     }
+
 
     public Frame receive() throws IOException {
         int tag;
@@ -83,21 +70,6 @@ public class Connection implements AutoCloseable {
         return new Frame(tag, data);
     }
 
-    /**
-     * Tag 2: Pair <br>
-     * Tag 3: Pair <br>
-     * Tag 4: Pair <br>
-     * Tag 5: CodigoReserva <br>
-     * Tag 6: Pair <br>
-     * Tag 7: Pair <br>
-     * Tag 11: PairList <br>
-     * Tag 12: RecompensaList <br>
-     * Tag 13: Mensagem <br>
-     * Tag 14: CodigoReserva <br>
-     * Tag 15: InfoViagem <br>
-     * Tag 30: RecompensaList (Notificações) <br>
-     * @return Frame
-     */
     public Frame receiveOld() throws IOException {
         int tag;
         Serializavel data = null;
