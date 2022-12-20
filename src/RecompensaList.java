@@ -7,7 +7,7 @@ public class RecompensaList extends HashSet<Recompensa> implements Serializavel{
 
     @Override
     public String toString(){
-        // Agrupa recompensas por origem(NOT IMPLEMENTED).
+        // Agrupa recompensas por origem.
         StringBuilder res = new StringBuilder();
         HashMap<Pair, ArrayList<Recompensa>> grouped = new HashMap<>();
         for (Recompensa r: this){

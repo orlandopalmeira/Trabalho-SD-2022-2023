@@ -53,6 +53,9 @@ public class InfoViagem implements Serializavel{
     public void setRecompensa(Recompensa recompensa) {
         this.recompensa = recompensa;
         this.custo -= recompensa.reward;
+        if (this.custo < 0){
+            this.custo = 0;
+        }
     }
 
     public boolean isSuccessful(){

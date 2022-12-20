@@ -28,11 +28,14 @@ public class Connection implements AutoCloseable {
      * Tag 2: Pair <br>
      * Tag 3: Pair <br>
      * Tag 4: Pair <br>
-     * Tag 5: Pair <br>
+     * Tag 5: CodigoReserva <br>
+     * Tag 6: Pair <br>
+     * Tag 7: Pair <br>
      * Tag 11: PairList <br>
      * Tag 12: RecompensaList <br>
      * Tag 13: Mensagem <br>
      * Tag 14: CodigoReserva <br>
+     * Tag 15: InfoViagem <br>
      * Tag 30: RecompensaList (Notificações) <br>
      */
     public void send(int tag, Serializavel data) throws IOException {
@@ -55,11 +58,14 @@ public class Connection implements AutoCloseable {
      * Tag 2: Pair <br>
      * Tag 3: Pair <br>
      * Tag 4: Pair <br>
-     * Tag 5: Pair <br>
+     * Tag 5: CodigoReserva <br>
+     * Tag 6: Pair <br>
+     * Tag 7: Pair <br>
      * Tag 11: PairList <br>
      * Tag 12: RecompensaList <br>
      * Tag 13: Mensagem <br>
      * Tag 14: CodigoReserva <br>
+     * Tag 15: InfoViagem <br>
      * Tag 30: RecompensaList (Notificações) <br>
      * @return Frame
      */
