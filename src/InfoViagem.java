@@ -75,7 +75,7 @@ public class InfoViagem implements Serializavel{
         if (recompensa != null){
             sb.append("Recompensa: ").append(recompensa).append("\n");
         }
-        sb.append("**********************************\n");
+        sb.append("********************************\n");
         return sb.toString();
     }
 

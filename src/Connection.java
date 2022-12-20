@@ -1,7 +1,9 @@
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.net.Socket;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
 
 public class Connection implements AutoCloseable {
 
@@ -38,7 +40,7 @@ public class Connection implements AutoCloseable {
      * Tag 15: InfoViagem <br>
      * Tag 30: RecompensaList (Notificações) <br>
      */
-    public void send(int tag, Serializavel data) throws IOException {
+    public void sendOld(int tag, Serializavel data) throws IOException {
         try {
             wl.lock();
             this.dos.writeInt(tag);
@@ -50,8 +52,35 @@ public class Connection implements AutoCloseable {
         }
     }
 
-    public void send(Serializavel data) throws IOException{ // TODO talvez ver o tipo de "data" e introduzir automaticamente um novo indentificador.
+    public void send(int tag, Serializavel data) throws IOException{
+        wl.lock();
+        try{
+            this.dos.writeInt(tag);
+            this.dos.writeUTF(data.getClass().getName()); // escreve o nome da classe
+            data.serialize(this.dos);
+            this.dos.flush();
+        } finally {
+            wl.unlock();
+        }
+    }
 
+    public Frame receive() throws IOException {
+        int tag;
+        Serializavel data = null;
+        rl.lock();
+        try{
+            tag = this.dis.readInt();
+            String className = this.dis.readUTF();
+            Class<?> classe = Class.forName(className);
+            //Object obj = classe.getDeclaredConstructor().newInstance();
+            data = (Serializavel) classe.getDeclaredConstructor().newInstance();
+            data = data.deserialize(this.dis);
+        } catch (InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        } finally {
+            rl.unlock();
+        }
+        return new Frame(tag, data);
     }
 
     /**
@@ -69,7 +98,7 @@ public class Connection implements AutoCloseable {
      * Tag 30: RecompensaList (Notificações) <br>
      * @return Frame
      */
-    public Frame receive() throws IOException {
+    public Frame receiveOld() throws IOException {
         int tag;
         Serializavel data = null;
         try {
