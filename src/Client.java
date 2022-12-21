@@ -265,6 +265,9 @@ public class Client {
                         System.out.println("Cancelamento de notificações inválido.");
                     }
                 }
+                default -> {
+                    System.out.println("Opção inválida!");
+                }
             }
             if (!option.equals("0")){
                 System.out.println("Prime Enter para continuar.");
