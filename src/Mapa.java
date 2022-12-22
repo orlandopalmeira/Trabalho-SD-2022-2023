@@ -23,6 +23,7 @@ public class Mapa {
             }
         }
         this.num_trotinetes = 8;
+        /*
         this.addTrotineta(2,1);
         this.addTrotineta(2,4);
         this.addTrotineta(4,1);
@@ -31,9 +32,8 @@ public class Mapa {
         this.addTrotineta(8,4);
         this.addTrotineta(8,9);
         this.addTrotineta(9,4);
-        /*
-        this.randomTrotinetes(num_trotinetes);
          */
+        this.randomTrotinetes(num_trotinetes);
     }
 
     /**

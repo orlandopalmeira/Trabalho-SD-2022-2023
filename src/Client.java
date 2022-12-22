@@ -63,7 +63,6 @@ public class Client {
         }
         Demultiplexer m = new Demultiplexer(new Connection(s));
 
-        // TODO Decidir se meto locks de prints.
         ReentrantLock printLock = new ReentrantLock();
         BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
 
