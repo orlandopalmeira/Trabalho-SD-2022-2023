@@ -114,26 +114,7 @@ public class Mapa {
     }
 
     /**
-     * Retorna a matriz do mapa - inutilizado
-     */
-    public Localizacao[][] getMapa() {
-        Localizacao[][] newMapa = new Localizacao[N][N];
-        lockAllLocais();
-            for (int i = 0; i < N; i++) {
-                for (int j = 0; j < N; j++) {
-                    try{
-                        newMapa[i][j] = mapa[i][j].clone();
-                    }finally {
-                        mapa[i][j].lock.readLock().unlock();
-                    }
-                }
-            }
-        return newMapa;
-    }
-
-
-    /**
-     * Retorna o objeto Localizacao naquela coordenada.
+     * Retorna o objeto Localizacao daquela coordenada.
      * Retorna Null caso as coordenadas não sejam válidas.
      */
     public Localizacao getLocalizacao(int x, int y) {
@@ -148,7 +129,7 @@ public class Mapa {
     }
 
     /**
-     * Retorna o objeto Localizacao naquela coordenada.
+     * Retorna o objeto Localizacao daquela coordenada.
      * Retorna Null caso as coordenadas não sejam válidas.
      */
     public Localizacao getLocalizacao(Pair p) {
@@ -187,22 +168,6 @@ public class Mapa {
         }
     }
 
-    /**
-     * Para notificacar aquando aparece uma trotinete num determinado local.
-     * AVISO ((Não está totalmente implementado))
-     */
-    public void getNotifTrot(int x, int y) throws InterruptedException {
-        mapa[x][y].lockLocal();
-        try {
-            while (mapa[x][y].getNtrotinetes() == 0){
-                mapa[x][y].getCond().await();
-            }
-            throw new InterruptedException();
-        }
-        finally {
-            mapa[x][y].unlockLocal();
-        }
-    }
 
     /**
      * Adiciona uma trotinete ao local indicado.
@@ -397,7 +362,6 @@ public class Mapa {
                 List<Pair> surronding = this.getSurroundings(central.getX(), central.getY(), 2);
                 int sum = 0;
                 for (Pair sur : surronding) {
-                    Localizacao l = getLocalizacao(sur.getX(), sur.getY());
                     sum += this.getTrotinetasIn(sur.getX(), sur.getY());
                     if (sum > 1) { // se na area estiver mais que 1 trotineta, esta área é considerada cheia, sendo uma origem de recompensa.
                         for (Pair ca : clearAreas) {
@@ -434,14 +398,11 @@ public class Mapa {
                 List<Pair> surronding = this.getSurroundings(central.getX(), central.getY(), 2);
                 int sum = 0;
                 for (Pair sur : surronding) {
-                    Localizacao l = getLocalizacao(sur.getX(), sur.getY());
                     sum += this.getTrotinetasIn(sur.getX(), sur.getY());
                     if (sum > 1) { // se na area estiver mais que 1 trotineta, esta área é considerada cheia, sendo uma origem de recompensa.
                         for (Pair ca : clearAreas) {
                             rewards.add(new Recompensa(central, ca));
-                            //rewards.add(new Recompensa(sur, ca)); //
                         }
-                        //trotinetas.remove(sur); // uma vez que já se faz a adiçao das recompensas quando se encontra uma trotineta surronding.
                         break;
                     }
                 }
@@ -507,29 +468,3 @@ public class Mapa {
     }
 
 }
-
-
-
-
-
-
-/*
-    /** Retorna uma List<Localizacao> onde indica a posição de trotinetes.
-     // Faz lock total e n liberta antecipadamente as localizacoes.
-    public List<Localizacao> whereAreTrotinetes(){
-        List<Localizacao> trotinetes = new ArrayList<Localizacao>();
-        this.lock.lock();
-        try {
-            for (int i = 0; i < N; i++) {
-                for (int j = 0; j < N; j++) {
-                    if (getTrotinetasIn(i, j) > 0) {
-                        trotinetes.add(getLocalizacao(i, j));
-                    }
-                }
-            }
-            return trotinetes;
-        } finally {
-            this.lock.unlock();
-        }
-    }
-*/

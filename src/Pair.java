@@ -21,6 +21,11 @@ public class Pair implements Comparable<Pair>, Serializavel{
         this.y = y;
     }
 
+    public Pair(Pair p){
+        this.x = p.getX();
+        this.y = p.getY();
+    }
+
     public int getX(){return x;}
 
     public int getY(){return y;}

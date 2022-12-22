@@ -137,7 +137,7 @@ public class Server {
                                 mapa.retiraTrotineta(closest);
                                 rewardslock.writeLock().lock();
                                 try {
-                                    rewardsCond.signalAll(); // sinaliza uma alteração no mapa para o gerador de recompensas. todo talvez passar so a signal.
+                                    rewardsCond.signal(); // sinaliza uma alteração no mapa para o gerador de recompensas.
                                 } finally {
                                     rewardslock.writeLock().unlock();
                                 }
@@ -176,8 +176,11 @@ public class Server {
                             }
                             if (flag) {
                                 rewardslock.writeLock().lock();
-                                rewardsCond.signalAll(); // sinaliza uma alteração no mapa para o gerador de recompensas.
-                                rewardslock.writeLock().unlock();
+                                try{
+                                    rewardsCond.signal(); // sinaliza uma alteração no mapa para o gerador de recompensas.
+                                } finally {
+                                    rewardslock.writeLock().unlock();
+                                }
                                 c.send(0, infoviagem);
                             } else {
                                 c.send(0, new InfoViagem());
