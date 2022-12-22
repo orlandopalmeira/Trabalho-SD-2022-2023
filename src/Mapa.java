@@ -278,8 +278,11 @@ public class Mapa {
         for (Pair p: pares){
             Localizacao l = getLocalizacao(p);
             l.lock.writeLock().lock();
-            l.cond.signalAll();
-            l.lock.writeLock().unlock();
+            try{
+                l.cond.signalAll();
+            } finally {
+                l.lock.writeLock().unlock();
+            }
         }
     }
 
