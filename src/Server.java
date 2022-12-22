@@ -32,20 +32,17 @@ public class Server {
         // Geração de recompensas em background.
         Thread evalRewards = new Thread(() -> {
             while(true) {
-                rewardslock.writeLock().lock(); //// talvez limitar o começo do lock, so na parte de alteração da estrutura de dados.
+                rewardslock.writeLock().lock();
                 try {
                     HashSet<Recompensa> newRecompensas = mapa.getRewards();
                     HashSet<Pair> toSignal = new HashSet<>();
-                    //HashSet<Recompensa> difRec = new HashSet<>();
 
                     for (Recompensa nr : newRecompensas) {
                         if (!recompensas.contains(nr)){
                             toSignal.addAll(mapa.getSurroundings(nr.origem, 2)); // adiciona as novas posicoes vizinhas de origem que têm novas recompensas.
-                            //difRec.add(nr);
                         }
                     }
-                    // sinaliza as novas posicoes com uma recompensa na origem.
-                    mapa.signalLocations(toSignal);
+                    mapa.signalLocations(toSignal); // sinaliza as novas posicoes com uma recompensa na origem.
 
                     recompensas.clear();
                     recompensas.addAll(newRecompensas);

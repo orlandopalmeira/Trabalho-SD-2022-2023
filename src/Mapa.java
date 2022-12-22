@@ -429,7 +429,7 @@ public class Mapa {
         try {
             // Locais destino de recompensas.
             List<Pair> clearAreas = this.getClearAreas();
-            clearAreas.stream().filter(a -> !surroundings.contains(a));
+            clearAreas = clearAreas.stream().filter(a -> !surroundings.contains(a)).toList();
 
             List<Pair> trotinetas = this.trotinetesArround(x,y);
             if (trotinetas.size() > 0){
