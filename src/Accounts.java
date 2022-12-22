@@ -3,9 +3,9 @@ import java.util.HashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
- * Class that stores information about accounts. // FIXME - remove serializable methods and interface implementation.
+ * Class that stores information about accounts.
  */
-public class Accounts implements Serializable {
+public class Accounts {
 
     class PassAndIslogged{
         String password;

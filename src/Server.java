@@ -24,7 +24,7 @@ public class Server {
         TrotinetesReservadas trotinetesReservadas = new TrotinetesReservadas();
 
         // Estruturas auxiliares de suporte ao mecanismo de geração de recompensas.
-        final ReentrantReadWriteLock rewardslock = new ReentrantReadWriteLock(); // TODO talvez pensar se um simples lock seria melhor.
+        final ReentrantReadWriteLock rewardslock = new ReentrantReadWriteLock();
         final Condition rewardsCond = rewardslock.writeLock().newCondition();
         final RecompensaList recompensas = mapa.getRewards();
 

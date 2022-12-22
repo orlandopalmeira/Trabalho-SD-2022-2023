@@ -23,7 +23,6 @@ public class Mapa {
             }
         }
         this.num_trotinetes = 8;
-        // FIXME ESTOU A DEFINIR UMA ESTRUTURA MAIS EXATA, INVES DE INICIAR ALEATORIAMENTE AS TROTINETAS POR MOTIVOS DE DEBUG
         this.addTrotineta(2,1);
         this.addTrotineta(2,4);
         this.addTrotineta(4,1);
@@ -32,7 +31,9 @@ public class Mapa {
         this.addTrotineta(8,4);
         this.addTrotineta(8,9);
         this.addTrotineta(9,4);
-        //this.randomTrotinetes(num_trotinetes);
+        /*
+        this.randomTrotinetes(num_trotinetes);
+         */
     }
 
     /**

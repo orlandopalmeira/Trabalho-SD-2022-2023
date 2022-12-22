@@ -63,10 +63,9 @@ public class Client {
         }
         Demultiplexer m = new Demultiplexer(new Connection(s));
 
+        // TODO Decidir se meto locks de prints.
+        ReentrantLock printLock = new ReentrantLock();
         BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
-
-        // TODO não implementado em todos os Prints. (preciso assegurar momentos em que notificaçoes podem ser apresentados).
-        ReentrantLock printLock = new ReentrantLock(); // lock para prints de notificações não atropelarem o resto das funcionalidades.
 
         String username = null;
         boolean hasReservedTrotinete = false;
@@ -161,6 +160,7 @@ public class Client {
                     + "\n"
                     + "Opção: ");
             String option = stdin.readLine();
+            printLock.lock();
             String location;
             int code;
             Pair par;
@@ -273,6 +273,7 @@ public class Client {
                 System.out.println("Prime Enter para continuar.");
                 stdin.readLine();
             }
+            printLock.unlock();
             }
 
         receivingNotifications.interrupt();

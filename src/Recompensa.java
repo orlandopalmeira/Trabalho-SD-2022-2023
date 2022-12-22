@@ -89,7 +89,6 @@ public class Recompensa implements Serializavel {
     }
 
 
-    // @TODO
     public Recompensa deserialize (DataInputStream in) throws IOException {
         Pair origem = new Pair(0,0);
         Pair destino = new Pair(0,0);
