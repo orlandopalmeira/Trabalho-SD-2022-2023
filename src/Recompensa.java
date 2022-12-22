@@ -25,6 +25,17 @@ public class Recompensa implements Serializavel {
         this.reward = reward;
     }
 
+    public Pair getOrigem() {
+        return origem;
+    }
+
+    public Pair getDestino() {
+        return destino;
+    }
+
+    public int getReward() {
+        return reward;
+    }
 
     /**
      * Função matemática que calcula o valor da recompensa tendo em conta a distância entre a origem e o destino.

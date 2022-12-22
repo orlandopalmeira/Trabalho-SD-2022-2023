@@ -5,6 +5,7 @@ import java.util.*;
 
 public class RecompensaList extends HashSet<Recompensa> implements Serializavel{
 
+
     @Override
     public String toString(){
         // Agrupa recompensas por origem.

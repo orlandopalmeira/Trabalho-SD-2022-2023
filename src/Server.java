@@ -1,7 +1,6 @@
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketException;
 import java.util.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -116,10 +115,19 @@ public class Server {
                         // Probing de recompensas com origem numa localizacao.
                         else if (frame.tag == 3) {
                             Pair data = (Pair) frame.data;
-                            int x = data.getX();
-                            int y = data.getY();
-                            System.out.printf("Probing de recompensas em (%d,%d).%n", x, y); // LOG
-                            RecompensaList rs = mapa.getRewardsWithOrigin(x, y);
+                            System.out.printf("Probing de recompensas em %s.%n", data); // LOG
+                            //RecompensaList rs = mapa.getRewardsWithOrigin(data.getX(), data.getY());
+                            List<Pair> surr = mapa.getSurroundings(data, 2);
+                            RecompensaList rs = new RecompensaList();
+                            rewardslock.readLock().lock();
+                            try{
+                                for (Recompensa r: recompensas)
+                                    if (surr.contains(r.getOrigem()))
+                                        rs.add(r);
+                            } finally {
+                                rewardslock.readLock().unlock();
+                            }
+                            System.out.println("Tamanho da lista de recompensas: " + rs.size());
                             c.send(0, rs);
                         }
                         // Reservar trotinete
