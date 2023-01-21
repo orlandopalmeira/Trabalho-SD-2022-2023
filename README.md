@@ -15,5 +15,7 @@
 
 </div>
 
+### Nota: 19/20
+
 <h3><i>Keywords</i></h3>
 SD, sistemas distribuidos, sistemas distribuídos, uminho, miei, lei, lcc, engenharia informatica
